@@ -189,6 +189,8 @@ Phạm vi áp dụng: không chọn gì = toàn bộ budget; có filter card act
 
 ## 5. Màn hình & luồng chính
 
+> **Ghi chú thực thi:** khi implement UI (Phase 2–4), dùng skill design chuyên dụng (`frontend-design` / `ui-ux-pro-max`) để đảm bảo chất lượng giao diện — không tự code chay. Tham khảo screenshots trong `wnap/knowledge-based/screen-shot/` làm chuẩn layout.
+
 ### 5a. Plan Screen (Module A)
 
 - **RTA Header** (xanh lá, nổi bật) + nút Assign mở pop-over 2 tab: **Auto** (7 button trên) / **Manually** (nhập số + chọn category).
@@ -292,4 +294,34 @@ Mỗi phase dùng được thật trước khi sang phase sau (Phase 2 xong là 
 - Offline mode
 - Mobile native app (sẽ làm sau khi web ổn định)
 - Phân quyền chi tiết (cả 2 user đều admin)
-- Chat-style transaction entry (gõ "ăn phở 50k" → tự parse) — backlog v2, sau khi app chạy ổn
+- Chatbot trợ lý tài chính — backlog v2, xem §11
+
+---
+
+## 11. Backlog v2: Chatbot trợ lý tài chính
+
+> Đã thống nhất vision trong brainstorm 2026-06-07. KHÔNG làm trong v1 — chỉ đảm bảo design v1 không cản đường.
+
+### Vision — 3 vai trò
+
+1. **Nhập liệu kiểu chat**: gõ "ăn phở 50k" → bot tự parse thành transaction (amount, payee, category) và xác nhận trước khi lưu.
+2. **Truy vấn lịch sử / kb**: "tháng trước ăn uống hết bao nhiêu?", "còn bao nhiêu tiền tiêu được tới cuối tháng?" — budget data chính là knowledge base.
+3. **Personality & Accountability**: chi vượt target thì bot "chửi yêu", nhắc target sắp trễ deadline, khen khi đạt goal. Đây là điểm khác biệt lớn nhất so với YNAB gốc — biến kỷ luật tài chính thành tương tác vui.
+
+### Kiến trúc dự kiến
+
+- **LLM + tool use** (Claude API function calling) chạy qua **Supabase Edge Function** (giấu API key, kiểm soát chi phí).
+- Bot KHÔNG tự tính toán — chỉ gọi tool: `add_transaction()`, `query_spending(month, category)`, `get_budget_status()`, `get_target_progress()`. Các tool này wrap quanh math engine + queries có sẵn.
+- Personality nằm trong system prompt; mức độ "gắt" có thể cho user chỉnh trong Settings.
+- Chi phí: model nhỏ (Haiku) đủ dùng cho parsing + truy vấn, ~vài chục đồng/câu, không đáng kể cho 2 user.
+
+### Vì sao để v2
+
+1. Personality cần **vài tháng dữ liệu thật** để so sánh ("tháng này ăn ngoài gấp đôi tháng trước đó nha!") — build trước khi có data = demo rỗng.
+2. Tools gọi vào math engine → engine phải xong, ổn định và được test đầy đủ trước (Phase 1 của v1).
+
+### Điều kiện v1 phải giữ để v2 không phải đập lại
+
+- Math engine pure function, tách biệt UI ✅ (đã là nguyên tắc §2)
+- Schema sạch, queries theo tháng/category dễ wrap thành tool ✅ (§3)
+- Supabase Edge Functions sẵn trong stack, chỉ thêm function mới khi cần ✅
