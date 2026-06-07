@@ -1,0 +1,1 @@
+For app UI, refer to https://support.ynab.com/en_us/spaces-in-the-mobile-app-S1iIZQoqgg
