@@ -43,3 +43,15 @@ test('moneyAvailable: available dương', () => {
 test('snoozed', () => {
   expect(isSnoozed(row({ snoozed: true }))).toBe(true);
 });
+
+test('overfunded have_balance: available vượt amount (cùng nhánh refill)', () => {
+  const hb = (amount: number): Target =>
+    ({ categoryId: 'c1', strategy: 'have_balance', amount, cadence: 'custom', dueDate: '2026-12-31' });
+  expect(isOverfunded(row({ target: hb(300_000), available: 400_000 }))).toBe(true);
+  expect(isOverfunded(row({ target: hb(300_000), available: 250_000 }))).toBe(false);
+});
+
+test('overfunded không target → false; isSnoozed false case', () => {
+  expect(isOverfunded(row({ available: 999_000 }))).toBe(false);
+  expect(isSnoozed(row({ snoozed: false }))).toBe(false);
+});
