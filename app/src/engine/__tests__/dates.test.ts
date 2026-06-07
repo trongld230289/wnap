@@ -34,3 +34,11 @@ test('weekdayCountInMonth: 6/2026 có 5 thứ Hai, 4 Chủ nhật', () => {
   expect(weekdayCountInMonth('2026-06', 1)).toBe(5); // Mon: 1,8,15,22,29
   expect(weekdayCountInMonth('2026-06', 0)).toBe(4); // Sun: 7,14,21,28
 });
+
+test('monthRange cùng 1 tháng', () => {
+  expect(monthRange('2026-06', '2026-06')).toEqual(['2026-06']);
+});
+
+test('daysInMonth tháng 31 ngày', () => {
+  expect(daysInMonth('2026-01')).toBe(31);
+});

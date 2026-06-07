@@ -1,5 +1,6 @@
 export type Month = string; // 'YYYY-MM'
 
+/** Giả định date dạng ISO 'YYYY-MM-DD'; lấy 7 ký tự đầu. */
 export function monthOf(date: string): Month {
   return date.slice(0, 7);
 }
@@ -32,11 +33,12 @@ export function daysInMonth(m: Month): number {
   return new Date(y, mo, 0).getDate();
 }
 
-/** Đếm số lần weekday (0=CN..6=T7) xuất hiện trong tháng. */
+/** Đếm số lần weekday xuất hiện trong tháng. @param weekday 0=CN .. 6=T7 (theo Date.getDay()) */
 export function weekdayCountInMonth(m: Month, weekday: number): number {
   const [y, mo] = m.split('-').map(Number);
   let count = 0;
-  for (let d = 1; d <= daysInMonth(m); d++) {
+  const days = daysInMonth(m);
+  for (let d = 1; d <= days; d++) {
     if (new Date(y, mo - 1, d).getDay() === weekday) count++;
   }
   return count;
