@@ -64,3 +64,60 @@ test('transaction không category (chưa categorize) bị bỏ qua trong budget 
   );
   expect(out.get('2026-01')!.rta).toBe(0);
 });
+
+test('available dương carry sang tháng sau', () => {
+  const out = computeThrough(
+    input({
+      transactions: [tx({ categoryId: 'rta', amount: 5_000_000 })],
+      assignments: [{ categoryId: 'food', month: '2026-01', assigned: 2_000_000 }],
+    }),
+    '2026-02',
+  );
+  const feb = out.get('2026-02')!.categories.get('food')!;
+  expect(feb.startBalance).toBe(2_000_000);
+  expect(feb.available).toBe(2_000_000);
+  expect(out.get('2026-02')!.rta).toBe(3_000_000); // RTA cũng carry
+});
+
+test('available âm reset về 0 và trừ vào RTA tháng sau (chuẩn YNAB)', () => {
+  const out = computeThrough(
+    input({
+      transactions: [
+        tx({ categoryId: 'rta', amount: 10_000_000 }),
+        tx({ categoryId: 'food', amount: -1_500_000 }), // chi 1.5M, chỉ assign 1M
+      ],
+      assignments: [{ categoryId: 'food', month: '2026-01', assigned: 1_000_000 }],
+    }),
+    '2026-02',
+  );
+  const jan = out.get('2026-01')!;
+  expect(jan.categories.get('food')!.available).toBe(-500_000);
+  expect(jan.rta).toBe(9_000_000);
+
+  const feb = out.get('2026-02')!;
+  expect(feb.categories.get('food')!.available).toBe(0);     // reset
+  expect(feb.rta).toBe(8_500_000);                            // 9M − 500k overspent
+});
+
+test('chuỗi 3 tháng: rollover cộng dồn đúng', () => {
+  const out = computeThrough(
+    input({
+      transactions: [
+        tx({ categoryId: 'rta', amount: 10_000_000, date: '2026-01-05' }),
+        tx({ categoryId: 'rta', amount: 10_000_000, date: '2026-02-05' }),
+        tx({ categoryId: 'food', amount: -800_000, date: '2026-02-10' }),
+      ],
+      assignments: [
+        { categoryId: 'food', month: '2026-01', assigned: 1_000_000 },
+        { categoryId: 'food', month: '2026-02', assigned: 1_000_000 },
+      ],
+    }),
+    '2026-03',
+  );
+  // Feb: start 1M + assign 1M − 800k = 1.2M
+  expect(out.get('2026-02')!.categories.get('food')!.available).toBe(1_200_000);
+  // Mar: carry 1.2M
+  expect(out.get('2026-03')!.categories.get('food')!.available).toBe(1_200_000);
+  // RTA Mar = 10M + 10M − 2M assigned = 18M
+  expect(out.get('2026-03')!.rta).toBe(18_000_000);
+});
