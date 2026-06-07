@@ -71,6 +71,7 @@ accounts         (id, budget_id, name, type: cash|savings,
 category_groups  (id, budget_id, name, sort_order)
 categories       (id, group_id, name, sort_order,
                   kind: bill|need|saving|other,    ← phục vụ Priority Stack
+                  icon TEXT NULL,                  ← key animation/emoji cho Delight Layer
                   is_system: bool)                 ← "Inflow: Ready to Assign"
 
 targets          (id, category_id UNIQUE, 
@@ -207,7 +208,24 @@ Phạm vi áp dụng: không chọn gì = toàn bộ budget; có filter card act
 - **Transaction mới nhập tay mặc định Uncleared** (sửa mâu thuẫn spec cũ — xem §8).
 - **Reconcile**: nhập số dư bank → so với Cleared Balance → khớp thì toàn bộ cleared chuyển Reconciled (lock). Sửa transaction đã reconciled → warning modal "may cause mismatch, proceed?" (Soft Lock). Hiện "Reconciled X days ago" cạnh tên account.
 
-### 5c. Family Sync (Module D)
+### 5c. Delight Layer (micro-animations)
+
+WNAP khác YNAB gốc ở chỗ: mỗi hành động tài chính có **animation phản hồi vui** để duy trì thói quen nhập liệu — yếu tố sống còn của zero-based budgeting.
+
+| Hành động | Animation |
+|---|---|
+| Inflow (nạp tiền / nhận lương) | Đồng xu rơi vào ống heo 🐷 |
+| Outflow (chi tiêu) | Animation theo `categories.icon` (phở bốc khói, ly cà phê, cây xăng...) |
+| Assign tiền vào category | Tiền "chảy" từ RTA header vào hũ category |
+| Cover overspending | Dập lửa 🔥 → 💧, pill chuyển Red → Gray/Green |
+| Đạt target (Yellow → Green) | Confetti nhỏ / hũ đầy phát sáng |
+| Reconcile khớp số dư | Dấu khóa đóng lại + checkmark |
+
+- **Tech**: Lottie (lottie-react) cho animation có sẵn + Framer Motion cho transition/layout. Không đụng math engine — Delight Layer chỉ lắng nghe kết quả mutation.
+- **Nguyên tắc**: animation ≤ 1.5 giây, không chặn thao tác tiếp theo, có setting tắt được (prefers-reduced-motion).
+- `categories.icon`: user chọn icon khi tạo category; icon quyết định animation chi tiêu tương ứng; có bộ mặc định theo `kind`.
+
+### 5d. Family Sync (Module D)
 
 - **Invite flow**: chủ budget tạo invite code trong Settings → người kia đăng ký tài khoản + nhập code → thành `budget_member`. Quyền ngang nhau.
 - **Realtime**: mỗi budget 1 Supabase channel, subscribe `postgres_changes` trên `transactions / assignments / targets / categories / category_groups` → TanStack Query invalidate → refetch → engine tính lại. Độ trễ mục tiêu ≤ 2 giây.
@@ -258,7 +276,7 @@ Phạm vi áp dụng: không chọn gì = toàn bộ budget; có filter card act
 | **0** | Setup: Vite + React + TS, Supabase project, schema + RLS, Auth, tạo budget + invite code | Đăng nhập được, 2 user vào chung 1 budget rỗng |
 | **1** | **Math Engine** (TDD, pure TS): rollover, RTA, 3 target strategies × 4 cadence, snooze, auto-assign, filter, priority stack | `budget-engine/` pass toàn bộ test, chưa có UI |
 | **2** | Ledger (Module B): CRUD account/payee/transaction, triple balance, status toggle, reconcile | Nhập chi tiêu thật hàng ngày được |
-| **3** | Plan Screen (Module A + add-on): RTA header, bảng category, inline assign, Inspector, 5 filter cards, Move Money, Cover Overspending, Target config UI, Snooze | Dùng được đầy đủ chu trình YNAB 1 người |
+| **3** | Plan Screen (Module A + add-on): RTA header, bảng category, inline assign, Inspector, 5 filter cards, Move Money, Cover Overspending, Target config UI, Snooze + **Delight Layer** (animation §5c) | Dùng được đầy đủ chu trình YNAB 1 người, có animation |
 | **4** | Sync polish (Module D): realtime subscription, Action Log UI, invite flow hoàn chỉnh, PWA manifest, responsive mobile | 2 vợ chồng dùng song song trên 2 thiết bị |
 
 Mỗi phase dùng được thật trước khi sang phase sau (Phase 2 xong là bắt đầu nhập liệu thật được ngay).
@@ -274,3 +292,4 @@ Mỗi phase dùng được thật trước khi sang phase sau (Phase 2 xong là 
 - Offline mode
 - Mobile native app (sẽ làm sau khi web ổn định)
 - Phân quyền chi tiết (cả 2 user đều admin)
+- Chat-style transaction entry (gõ "ăn phở 50k" → tự parse) — backlog v2, sau khi app chạy ổn
