@@ -8,9 +8,8 @@ const CATS = [
   { id: 'rent', groupId: 'g1', name: 'Tiền nhà', kind: 'bill', isSystem: false },
 ] as const;
 
-let n = 0;
 function tx(p: Partial<Transaction> & { amount: number }): Transaction {
-  return { id: `t${++n}`, accountId: 'a1', date: '2026-01-10', categoryId: null, status: 'cleared', ...p };
+  return { id: crypto.randomUUID(), accountId: 'a1', date: '2026-01-10', categoryId: null, status: 'cleared', ...p };
 }
 
 function input(p: Partial<BudgetInput> = {}): BudgetInput {

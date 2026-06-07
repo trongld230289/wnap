@@ -5,6 +5,7 @@ import type { BudgetInput, CategoryMonth, Month, MonthSummary } from './types';
  * Tính tuần tự mọi tháng từ firstMonth đến `through` (spec §4a):
  *   available = max(prevAvailable, 0) + assigned + activity
  *   rta       = prevRta + inflow − totalAssigned + Σ min(prevAvailable, 0)
+ * Trả về Map rỗng nếu through < firstMonth.
  */
 export function computeThrough(input: BudgetInput, through: Month): Map<Month, MonthSummary> {
   const result = new Map<Month, MonthSummary>();
