@@ -19,6 +19,7 @@ export function needed(target: Target, ctx: NeedContext): number {
     return target.amount * weekdayCountInMonth(ctx.month, target.dueWeekday ?? 1);
   }
 
+  // yearly/custom luôn dùng deadline math bất kể strategy (spec §4b)
   if (target.strategy === 'have_balance' || target.cadence === 'yearly' || target.cadence === 'custom') {
     const deadline = monthOf(target.dueDate!); // schema bắt buộc dueDate cho nhóm này
     const remaining = monthsRemaining(ctx.month, deadline);

@@ -55,3 +55,17 @@ test('toGo = needed − assigned, không âm', () => {
   expect(toGo(target, ctx(), 40_000)).toBe(60_000);
   expect(toGo(target, ctx(), 150_000)).toBe(0);
 });
+
+test('snoozed override cả weekly cadence', () => {
+  expect(needed(t({ cadence: 'weekly', amount: 200_000, dueWeekday: 1 }), ctx({ snoozed: true }))).toBe(0);
+});
+
+test('have_balance đã đủ tiền → needed = 0', () => {
+  const target = t({ strategy: 'have_balance', cadence: 'custom', amount: 1_200_000, dueDate: '2026-12-31' });
+  expect(needed(target, ctx({ month: '2026-07', availableAtMonthStart: 1_500_000 }))).toBe(0);
+});
+
+test('weekly dueWeekday = 0 (Chủ nhật) không bị fallback', () => {
+  const target = t({ cadence: 'weekly', amount: 100_000, dueWeekday: 0 });
+  expect(needed(target, ctx({ month: '2026-06' }))).toBe(400_000); // 4 Chủ nhật
+});
