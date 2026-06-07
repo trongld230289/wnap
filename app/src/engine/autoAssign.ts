@@ -85,7 +85,11 @@ export function proposeResetAvailable(rows: PlanRow[]): Proposal[] {
 
 const KIND_PRIORITY: Record<CategoryKind, number> = { bill: 1, need: 2, saving: 3, other: 4 };
 
-/** Sort key trong cùng bucket: bill due sớm đứng trước. */
+/**
+ * Sort key trong cùng bucket: bill due sớm đứng trước.
+ * Lưu ý: weekly (0–6) và monthly (1–31) trộn cùng thang — weekly chủ đích
+ * xếp trước vì lặp lại sát hơn; yearly/custom (50) xếp sau bill trong tháng.
+ */
 function dueTiebreak(t: Target | null): number {
   if (!t) return 99;
   if (t.cadence === 'monthly') return t.dueDay ?? 31;

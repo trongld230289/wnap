@@ -79,3 +79,27 @@ test('snoozed không được fill', () => {
   ];
   expect(proposeUnderfunded(rows, 500)).toEqual([]);
 });
+
+test('red lớn hơn RTA → cover một phần, vẫn đỏ', () => {
+  const rows = [row({ categoryId: 'tv', kind: 'other', available: -500, activity: -500 })];
+  expect(proposeUnderfunded(rows, 100)).toEqual([{ categoryId: 'tv', newAssigned: 100 }]);
+});
+
+test('RTA vừa khít tổng demand → fill đủ, không thừa', () => {
+  const out = proposeUnderfunded(scenarioRows(), 1_000); // 50+400+150+300+100
+  expect(out).toEqual([
+    { categoryId: 'tv', newAssigned: 50 },
+    { categoryId: 'rent', newAssigned: 400 },
+    { categoryId: 'internet', newAssigned: 150 },
+    { categoryId: 'groceries', newAssigned: 300 },
+    { categoryId: 'saving', newAssigned: 100 },
+  ]);
+});
+
+test('snoozed + red: vẫn được cover overspend, không fill toGo', () => {
+  const rows = [
+    row({ categoryId: 'vac', kind: 'saving', available: -80, activity: -80,
+          target: monthly('vac', 200), needed: 0, snoozed: true }),
+  ];
+  expect(proposeUnderfunded(rows, 500)).toEqual([{ categoryId: 'vac', newAssigned: 80 }]);
+});
