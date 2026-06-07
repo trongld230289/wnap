@@ -16,7 +16,8 @@ export function buildPlanRows(
   return input.categories
     .filter((c) => !c.isSystem)
     .map((c) => {
-      const cm = summary.categories.get(c.id)!;
+      const cm = summary.categories.get(c.id);
+      if (!cm) throw new Error(`category ${c.id} missing from summary for month ${month}`);
       const target = targetByCat.get(c.id) ?? null;
       const snoozed = snoozedSet.has(c.id);
       const nd = target
