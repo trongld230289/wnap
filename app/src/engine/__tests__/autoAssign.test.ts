@@ -63,6 +63,7 @@ test('tháng đầu tiên không có lịch sử → đề xuất rỗng', () =>
   const { input, summaries, rows } = setup('2026-01');
   expect(proposeAssignedLastMonth(rows, summaries, '2026-01')).toEqual([]);
   expect(proposeAverageAssigned(rows, summaries, '2026-01', input.firstMonth)).toEqual([]);
+  expect(proposeSpentLastMonth(rows, summaries, '2026-01')).toEqual([]);
 });
 
 test('resetAssigned đưa assigned về 0', () => {

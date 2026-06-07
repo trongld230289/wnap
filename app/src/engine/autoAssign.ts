@@ -40,6 +40,10 @@ export function proposeSpentLastMonth(
   }));
 }
 
+/**
+ * Trung bình trên TOÀN BỘ cửa sổ lịch sử: tháng không có dữ liệu tính là 0
+ * (đúng hành vi YNAB — category mới thêm sẽ bị pha loãng average).
+ */
 function average(
   rows: PlanRow[], summaries: Map<Month, MonthSummary>, month: Month,
   firstMonth: Month, pick: (assigned: number, activity: number) => number,
