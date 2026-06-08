@@ -36,3 +36,24 @@ test('deriveFirstMonth = tháng nhỏ nhất giữa transactions & assignments',
 test('deriveFirstMonth rỗng → fallback tháng truyền vào', () => {
   expect(deriveFirstMonth({ categories: [], targets: [], snoozes: [], assignments: [], transactions: [] }, '2026-09')).toBe('2026-09');
 });
+
+import { mapAccounts, mapPayees, mapLedgerTxns } from '../../lib/mappers';
+
+test('mapAccounts: snake → camel, giữ reconciled_at', () => {
+  expect(mapAccounts([{ id: 'a1', name: 'VCB', type: 'cash', reconciled_at: '2026-06-01T00:00:00Z', sort_order: 0 }]))
+    .toEqual([{ id: 'a1', name: 'VCB', type: 'cash', reconciledAt: '2026-06-01T00:00:00Z' }]);
+});
+
+test('mapPayees', () => {
+  expect(mapPayees([{ id: 'p1', name: 'Co.opmart' }])).toEqual([{ id: 'p1', name: 'Co.opmart' }]);
+});
+
+test('mapLedgerTxns: gồm payee/memo/transfer, default null', () => {
+  expect(mapLedgerTxns([
+    { id: 't1', account_id: 'a1', date: '2026-06-05', category_id: 'c1', amount: -200000, status: 'uncleared', payee_id: 'p1', memo: 'chợ', transfer_id: null },
+    { id: 't2', account_id: 'a1', date: '2026-06-06', category_id: null, amount: 100, status: 'cleared' },
+  ])).toEqual([
+    { id: 't1', accountId: 'a1', date: '2026-06-05', payeeId: 'p1', categoryId: 'c1', memo: 'chợ', amount: -200000, status: 'uncleared', transferId: null },
+    { id: 't2', accountId: 'a1', date: '2026-06-06', payeeId: null, categoryId: null, memo: null, amount: 100, status: 'cleared', transferId: null },
+  ]);
+});

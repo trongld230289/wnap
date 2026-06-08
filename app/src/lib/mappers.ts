@@ -7,7 +7,11 @@ export interface RawCategory { id: string; group_id: string; name: string; kind:
 export interface RawTarget { category_id: string; strategy: Target['strategy']; amount: number; cadence: Target['cadence']; due_day: number | null; due_weekday: number | null; due_date: string | null; }
 export interface RawSnooze { category_id: string; month: string; }
 export interface RawAssignment { category_id: string; month: string; assigned: number; }
-export interface RawTransaction { id: string; account_id: string; date: string; category_id: string | null; amount: number; status: Transaction['status']; }
+export interface RawTransaction {
+  id: string; account_id: string; date: string; category_id: string | null;
+  amount: number; status: Transaction['status'];
+  payee_id?: string | null; memo?: string | null; transfer_id?: string | null;
+}
 
 export interface RawBudgetData {
   categories: RawCategory[];
@@ -43,3 +47,28 @@ export function toBudgetInput(raw: RawBudgetData, firstMonth: Month): BudgetInpu
     firstMonth,
   };
 }
+
+export type AccountType = 'cash' | 'savings';
+export interface RawAccount { id: string; name: string; type: AccountType; reconciled_at: string | null; sort_order: number; }
+export interface RawPayee { id: string; name: string; }
+
+export interface LedgerAccount { id: string; name: string; type: AccountType; reconciledAt: string | null; }
+export interface LedgerPayee { id: string; name: string; }
+export interface LedgerTxn {
+  id: string; accountId: string; date: string; payeeId: string | null;
+  categoryId: string | null; memo: string | null; amount: number;
+  status: Transaction['status']; transferId: string | null;
+}
+
+export const mapAccounts = (rows: RawAccount[]): LedgerAccount[] =>
+  rows.map((a) => ({ id: a.id, name: a.name, type: a.type, reconciledAt: a.reconciled_at }));
+
+export const mapPayees = (rows: RawPayee[]): LedgerPayee[] =>
+  rows.map((p) => ({ id: p.id, name: p.name }));
+
+export const mapLedgerTxns = (rows: RawTransaction[]): LedgerTxn[] =>
+  rows.map((r) => ({
+    id: r.id, accountId: r.account_id, date: r.date, payeeId: r.payee_id ?? null,
+    categoryId: r.category_id, memo: r.memo ?? null, amount: r.amount,
+    status: r.status, transferId: r.transfer_id ?? null,
+  }));
