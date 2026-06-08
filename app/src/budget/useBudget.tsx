@@ -60,7 +60,11 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
   useEffect(() => { refetch(); }, [refetch]);
 
   const { rows, rta } = useMemo(() => {
-    const input = toBudgetInput(raw, deriveFirstMonth(raw, viewMonth));
+    // firstMonth phải ≤ viewMonth để computeThrough luôn phủ viewMonth; nếu xem
+    // tháng trước cả tháng dữ liệu sớm nhất, kẹp về viewMonth (tránh Map rỗng → buildPlanRows throw).
+    const dataFirst = deriveFirstMonth(raw, viewMonth);
+    const firstMonth = viewMonth < dataFirst ? viewMonth : dataFirst;
+    const input = toBudgetInput(raw, firstMonth);
     const summaries = computeThrough(input, viewMonth);
     return { rows: buildPlanRows(input, summaries, viewMonth), rta: summaries.get(viewMonth)?.rta ?? 0 };
   }, [raw, viewMonth]);
