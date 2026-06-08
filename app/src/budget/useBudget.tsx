@@ -69,7 +69,7 @@ async function fetchRaw(budgetId: string): Promise<FetchResult> {
     supabase.from('targets').select('category_id,strategy,amount,cadence,due_day,due_weekday,due_date').eq('budget_id', budgetId),
     supabase.from('target_snoozes').select('category_id,month').eq('budget_id', budgetId),
     supabase.from('assignments').select('category_id,month,assigned').eq('budget_id', budgetId),
-    supabase.from('transactions').select('id,account_id,date,category_id,amount,status,payee_id,memo').eq('budget_id', budgetId).order('date', { ascending: false }),
+    supabase.from('transactions').select('id,account_id,date,category_id,amount,status,payee_id,memo,transfer_id').eq('budget_id', budgetId).order('date', { ascending: false }),
     supabase.from('accounts').select('id,name,type,reconciled_at,sort_order').eq('budget_id', budgetId).eq('closed', false).order('sort_order'),
     supabase.from('payees').select('id,name').eq('budget_id', budgetId),
   ]);
