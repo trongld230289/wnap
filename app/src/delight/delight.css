@@ -1,0 +1,40 @@
+/* ===== WNAP Delight Layer — CSS keyframes (thuần trình bày) ===== */
+
+/* RTA pill: gợn sáng đẩy ra (assign) + glow (payday) */
+.dl-ripple { position:absolute; inset:0; border-radius:inherit; border:2px solid var(--status-green); opacity:0; pointer-events:none; }
+.dl-emit .dl-ripple { animation:dl-emit .7s ease-out; }
+@keyframes dl-emit { 0%{opacity:.55; transform:scale(1)} 100%{opacity:0; transform:scale(1.3)} }
+.dl-glow { box-shadow:0 0 0 6px color-mix(in srgb, var(--status-green) 14%, transparent), 0 0 24px color-mix(in srgb, var(--status-green) 45%, transparent); }
+.dl-bump { animation:dl-bump .7s cubic-bezier(.18,1.3,.3,1); }
+@keyframes dl-bump { 0%{transform:scale(1)} 35%{transform:scale(1.08)} 100%{transform:scale(1)} }
+
+/* Available cell: vệt sáng nhận vào (assign) + heal đỏ→trong (cover) */
+.dl-sweep { position:absolute; inset:0; pointer-events:none; opacity:0; overflow:hidden; border-radius:8px; }
+.dl-sweep::before { content:''; position:absolute; top:0; bottom:0; width:60%;
+  background:linear-gradient(100deg, transparent, color-mix(in srgb, var(--status-green) 22%, transparent), transparent);
+  transform:translateX(-170%); }
+.dl-receive .dl-sweep { opacity:1; }
+.dl-receive .dl-sweep::before { animation:dl-sweepmove .9s ease-out; }
+@keyframes dl-sweepmove { to{ transform:translateX(270%) } }
+.dl-heal { animation:dl-heal 1s ease-out; border-radius:8px; }
+@keyframes dl-heal { 0%{ background:color-mix(in srgb, var(--status-red) 16%, transparent) } 100%{ background:transparent } }
+
+/* Status dot → check (đạt target) */
+.dl-status { position:relative; width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+.dl-status .dl-dot { width:9px; height:9px; border-radius:50%; transition:width .4s, height .4s; }
+.dl-status.dl-done .dl-dot { width:16px; height:16px; }
+.dl-status svg { position:absolute; inset:0; width:16px; height:16px; pointer-events:none; }
+.dl-status path { stroke:#fff; stroke-width:2.2; fill:none; stroke-linecap:round; stroke-linejoin:round;
+  stroke-dasharray:14; stroke-dashoffset:14; transition:stroke-dashoffset .4s ease .2s; }
+.dl-status.dl-done path { stroke-dashoffset:0; }
+
+/* Sparkle burst nhỏ */
+.dl-sparkle { position:absolute; left:8px; top:8px; pointer-events:none; }
+.dl-sparkle i { position:absolute; width:6px; height:6px; border-radius:2px; opacity:0; animation:dl-spark .9s ease-out forwards; }
+@keyframes dl-spark { 0%{opacity:0; transform:translate(0,0) scale(.4)} 25%{opacity:1} 100%{opacity:0; transform:translate(var(--tx),var(--ty)) scale(1) rotate(160deg)} }
+
+/* Tôn trọng prefers-reduced-motion ở tầng CSS (belt-and-suspenders; tầng JS cũng gate) */
+@media (prefers-reduced-motion: reduce) {
+  .dl-emit .dl-ripple, .dl-bump, .dl-receive .dl-sweep::before, .dl-heal, .dl-sparkle i { animation:none !important; }
+  .dl-status .dl-dot, .dl-status path { transition:none !important; }
+}
