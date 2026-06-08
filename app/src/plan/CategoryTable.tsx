@@ -29,6 +29,27 @@ function AssignedCell({ row }: { row: PlanRow }) {
   );
 }
 
+function CategoryRow({ row, onMoveMoney, onEditTarget }: {
+  row: PlanRow;
+  onMoveMoney: (categoryId: string) => void;
+  onEditTarget: (categoryId: string) => void;
+}) {
+  const { categoryName } = useBudget();
+  return (
+    <tr className="border-b last:border-0">
+      <td className="px-3 py-2 text-left">
+        {categoryName(row.categoryId)}
+        <button onClick={() => onEditTarget(row.categoryId)} title="Mục tiêu" className="ml-1.5 opacity-60 hover:opacity-100">🎯</button>
+      </td>
+      <td className="px-3 py-2 text-right"><AssignedCell row={row} /></td>
+      <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{formatVnd(row.activity)}</td>
+      <td className="px-3 py-2 text-right">
+        <button onClick={() => onMoveMoney(row.categoryId)} title="Chuyển tiền" className="cursor-pointer"><AvailableBar row={row} /></button>
+      </td>
+    </tr>
+  );
+}
+
 interface Props {
   visibleRows: PlanRow[];
   onMoveMoney: (categoryId: string) => void;
@@ -36,7 +57,7 @@ interface Props {
 }
 
 export function CategoryTable({ visibleRows, onMoveMoney, onEditTarget }: Props) {
-  const { groups, groupIdOf, categoryName } = useBudget();
+  const { groups, groupIdOf } = useBudget();
   const byGroup = new Map<string, PlanRow[]>();
   for (const r of visibleRows) {
     const g = groupIdOf(r.categoryId);
@@ -62,17 +83,7 @@ export function CategoryTable({ visibleRows, onMoveMoney, onEditTarget }: Props)
               <Fragment key={g.id}>
                 <tr><td colSpan={4} className="bg-muted/60 px-3 py-1.5 font-semibold text-foreground/80">{g.name}</td></tr>
                 {rows.map((r) => (
-                  <tr key={r.categoryId} className="border-b last:border-0">
-                    <td className="px-3 py-2 text-left">
-                      {categoryName(r.categoryId)}
-                      <button onClick={() => onEditTarget(r.categoryId)} title="Mục tiêu" className="ml-1.5 opacity-60 hover:opacity-100">🎯</button>
-                    </td>
-                    <td className="px-3 py-2 text-right"><AssignedCell row={r} /></td>
-                    <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{formatVnd(r.activity)}</td>
-                    <td className="px-3 py-2 text-right">
-                      <button onClick={() => onMoveMoney(r.categoryId)} title="Chuyển tiền" className="cursor-pointer"><AvailableBar row={r} /></button>
-                    </td>
-                  </tr>
+                  <CategoryRow key={r.categoryId} row={r} onMoveMoney={onMoveMoney} onEditTarget={onEditTarget} />
                 ))}
               </Fragment>
             );
