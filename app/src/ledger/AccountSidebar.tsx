@@ -1,6 +1,7 @@
 import { useBudget } from '../budget/useBudget';
 import { groupAccounts } from './ledgerGroups';
 import { formatVnd } from '../budget/format';
+import { cn } from '@/lib/utils';
 
 export function AccountSidebar({ selected, onSelect }: { selected: string; onSelect: (id: string) => void }) {
   const { accounts, transactions, addAccount } = useBudget();
@@ -14,22 +15,28 @@ export function AccountSidebar({ selected, onSelect }: { selected: string; onSel
   }
 
   const item = (id: string, name: string, working: number) => (
-    <div key={id} onClick={() => onSelect(id)}
-      style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 8px', borderRadius: 6, cursor: 'pointer',
-        background: selected === id ? '#e8f3ec' : 'transparent', color: selected === id ? '#1f7d45' : '#333', fontWeight: selected === id ? 600 : 400 }}>
-      <span>{name}</span><span style={{ color: '#999' }}>{formatVnd(working)}</span>
-    </div>
+    <button
+      key={id}
+      onClick={() => onSelect(id)}
+      className={cn(
+        'flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left transition-colors',
+        selected === id ? 'bg-accent font-semibold text-accent-foreground' : 'text-foreground hover:bg-muted',
+      )}
+    >
+      <span className="truncate">{name}</span>
+      <span className={cn('tabular-nums', selected === id ? 'text-accent-foreground/80' : 'text-muted-foreground')}>{formatVnd(working)}</span>
+    </button>
   );
-  const grpLabel = (s: string) => <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#aaa', margin: '10px 0 4px' }}>{s}</div>;
+  const grpLabel = (s: string) => <div className="mb-1 mt-3 px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{s}</div>;
 
   return (
-    <div style={{ width: 190, background: '#fafafa', borderRight: '1px solid #eee', padding: 10, fontSize: 13 }}>
+    <div className="w-full shrink-0 border-b bg-muted/40 p-2.5 text-[13px] md:w-48 md:border-b-0 md:border-r">
       {item('all', 'Tất cả tài khoản', g.total)}
       {g.cash.length > 0 && grpLabel('Tiền mặt')}
       {g.cash.map((a) => item(a.id, a.name, a.working))}
       {g.savings.length > 0 && grpLabel('Tiết kiệm')}
       {g.savings.map((a) => item(a.id, a.name, a.working))}
-      <div onClick={onAdd} style={{ marginTop: 12, color: '#2b6cb0', cursor: 'pointer' }}>＋ Thêm tài khoản</div>
+      <button onClick={onAdd} className="mt-3 px-2 text-sm text-primary hover:underline">＋ Thêm tài khoản</button>
     </div>
   );
 }

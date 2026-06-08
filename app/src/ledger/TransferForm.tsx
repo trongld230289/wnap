@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Modal } from '../plan/Modal';
 import { useBudget } from '../budget/useBudget';
 import { parseVnd } from '../budget/format';
-
-const inp: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '7px 9px', margin: '6px 0', border: '1px solid #d7d7db', borderRadius: 8 };
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function TransferForm({ fromId, onClose }: { fromId: string; onClose: () => void }) {
   const { accounts, accountName, addTransfer } = useBudget();
@@ -23,17 +25,30 @@ export function TransferForm({ fromId, onClose }: { fromId: string; onClose: () 
 
   return (
     <Modal title="Chuyển khoản giữa tài khoản" onClose={onClose}>
-      <label style={{ fontSize: 11, color: '#999' }}>Từ</label>
-      <div style={{ ...inp, background: '#f6f6f8' }}>{accountName(fromId)}</div>
-      <label style={{ fontSize: 11, color: '#999' }}>Đến</label>
-      <select style={inp} value={toId} onChange={(e) => setToId(e.target.value)}>
-        {others.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-      </select>
-      <label style={{ fontSize: 11, color: '#999' }}>Số tiền</label>
-      <input style={inp} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="vd 2.000.000" />
-      <label style={{ fontSize: 11, color: '#999' }}>Ngày</label>
-      <input style={inp} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      <button onClick={go} style={{ marginTop: 8, width: '100%', background: '#1f9d55', color: '#fff', border: 0, borderRadius: 8, padding: '9px' }}>Chuyển</button>
+      <div className="space-y-3">
+        <div>
+          <Label className="text-xs text-muted-foreground">Từ</Label>
+          <div className="rounded-md border bg-muted px-3 py-2 text-sm">{accountName(fromId)}</div>
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground">Đến</Label>
+          <Select value={toId} onValueChange={setToId}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {others.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground">Số tiền</Label>
+          <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="vd 2.000.000" className="tabular-nums" />
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground">Ngày</Label>
+          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        </div>
+        <Button className="w-full" onClick={go}>Chuyển</Button>
+      </div>
     </Modal>
   );
 }

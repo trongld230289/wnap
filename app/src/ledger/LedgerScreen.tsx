@@ -6,6 +6,7 @@ import { TransactionTable } from './TransactionTable';
 import { TransactionForm } from './TransactionForm';
 import { ReconcileModal } from './ReconcileModal';
 import { TransferForm } from './TransferForm';
+import { Button } from '@/components/ui/button';
 import type { LedgerTxn } from '../lib/mappers';
 
 export function LedgerScreen() {
@@ -15,7 +16,7 @@ export function LedgerScreen() {
   const [editing, setEditing] = useState<LedgerTxn | null>(null);
   const [modal, setModal] = useState<'reconcile' | 'transfer' | null>(null);
 
-  if (loading) return <p style={{ fontFamily: 'sans-serif', margin: 40 }}>Đang tải sổ giao dịch…</p>;
+  if (loading) return <p className="m-10 text-sm text-muted-foreground">Đang tải sổ giao dịch…</p>;
 
   const txns = selected === 'all' ? transactions : transactions.filter((t) => t.accountId === selected);
   const canAdd = selected !== 'all';
@@ -32,18 +33,22 @@ export function LedgerScreen() {
   }
 
   return (
-    <div style={{ maxWidth: 980, margin: '12px auto', fontFamily: 'sans-serif', padding: '0 12px' }}>
-      <div style={{ display: 'flex', border: '1px solid #e3e3e6', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
+    <div className="mx-auto my-3 max-w-5xl px-3">
+      <div className="flex flex-col overflow-hidden rounded-xl border bg-card md:flex-row">
         <AccountSidebar selected={selected} onSelect={(id) => { setSelected(id); reset(); }} />
-        <div style={{ flex: 1, padding: '12px 14px' }}>
+        <div className="flex-1 p-4">
           <BalanceHeader accountId={selected} onReconcile={() => setModal('reconcile')} />
-          <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div className="mb-2 flex flex-wrap items-center gap-2">
             {canAdd ? (
               <>
-                <button onClick={() => { setEditing(null); setAdding(true); }} disabled={adding}>＋ Thêm giao dịch</button>
-                <button onClick={() => setModal('transfer')}>⇄ Chuyển khoản</button>
+                <Button size="sm" onClick={() => { setEditing(null); setAdding(true); }} disabled={adding}>＋ Thêm giao dịch</Button>
+                <Button size="sm" variant="outline" onClick={() => setModal('transfer')}>⇄ Chuyển khoản</Button>
               </>
-            ) : <span style={{ fontSize: 12, color: '#aaa' }}>Chọn 1 tài khoản để thêm giao dịch{accounts.length === 0 ? ' (tạo tài khoản trước)' : ''}</span>}
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                Chọn 1 tài khoản để thêm giao dịch{accounts.length === 0 ? ' (tạo tài khoản trước)' : ''}
+              </span>
+            )}
           </div>
           {(adding || editing) && canAdd && <TransactionForm key={editing?.id ?? 'new'} accountId={selected} editing={editing} onDone={reset} />}
           <TransactionTable txns={txns} onEdit={onEdit} onDelete={onDelete} />

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useBudget } from '../budget/useBudget';
 import { parseVnd, formatVnd } from '../budget/format';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { LedgerTxn } from '../lib/mappers';
-
-const inp: React.CSSProperties = { border: '1px solid #cfd8d2', borderRadius: 5, padding: '5px 7px', fontSize: 12 };
 
 export function TransactionForm({ accountId, editing, onDone }: { accountId: string; editing: LedgerTxn | null; onDone: () => void }) {
   const { allCategories, payees, upsertPayee, addTransaction, updateTransaction } = useBudget();
@@ -29,19 +30,21 @@ export function TransactionForm({ accountId, editing, onDone }: { accountId: str
   }
 
   return (
-    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', background: '#fbfdfb', padding: 8, borderRadius: 8, border: '1px solid #e6efe8', marginBottom: 8 }}>
-      <input style={{ ...inp, width: 120 }} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      <input style={{ ...inp, width: 130 }} placeholder="Payee" list="payee-list" value={payee} onChange={(e) => setPayee(e.target.value)} />
+    <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border bg-accent/40 p-2.5">
+      <Input className="h-8 w-32" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+      <Input className="h-8 w-36" placeholder="Payee" list="payee-list" value={payee} onChange={(e) => setPayee(e.target.value)} />
       <datalist id="payee-list">{payees.map((p) => <option key={p.id} value={p.name} />)}</datalist>
-      <select style={{ ...inp, width: 160 }} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-        <option value="">— Chọn category —</option>
-        {allCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-      </select>
-      <input style={{ ...inp, width: 120 }} placeholder="Memo" value={memo} onChange={(e) => setMemo(e.target.value)} />
-      <input style={{ ...inp, width: 90 }} placeholder="Outflow" value={outflow} onChange={(e) => setOutflow(e.target.value)} />
-      <input style={{ ...inp, width: 90 }} placeholder="Inflow" value={inflow} onChange={(e) => setInflow(e.target.value)} />
-      <button onClick={save} style={{ background: '#1f9d55', color: '#fff', border: 0, borderRadius: 5, padding: '5px 12px' }}>{editing ? 'Cập nhật' : 'Lưu'}</button>
-      <button onClick={onDone} style={{ border: 0, background: 'none', color: '#888' }}>Hủy</button>
+      <Select value={categoryId} onValueChange={setCategoryId}>
+        <SelectTrigger className="h-8 w-44" size="sm"><SelectValue placeholder="— Chọn category —" /></SelectTrigger>
+        <SelectContent>
+          {allCategories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      <Input className="h-8 w-32" placeholder="Memo" value={memo} onChange={(e) => setMemo(e.target.value)} />
+      <Input className="h-8 w-24 text-right tabular-nums" placeholder="Outflow" value={outflow} onChange={(e) => setOutflow(e.target.value)} />
+      <Input className="h-8 w-24 text-right tabular-nums" placeholder="Inflow" value={inflow} onChange={(e) => setInflow(e.target.value)} />
+      <Button size="sm" onClick={save}>{editing ? 'Cập nhật' : 'Lưu'}</Button>
+      <Button size="sm" variant="ghost" onClick={onDone}>Hủy</Button>
     </div>
   );
 }
