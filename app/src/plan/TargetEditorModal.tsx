@@ -3,9 +3,10 @@ import { Modal } from './Modal';
 import { useBudget } from '../budget/useBudget';
 import { parseVnd, formatVnd } from '../budget/format';
 import type { TargetStrategy, TargetCadence } from '../engine';
-
-const lbl: React.CSSProperties = { fontSize: 11, textTransform: 'uppercase', color: '#999', marginTop: 8, display: 'block' };
-const inp: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '7px 9px', margin: '3px 0', border: '1px solid #d7d7db', borderRadius: 8 };
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function TargetEditorModal({ categoryId, onClose }: { categoryId: string; onClose: () => void }) {
   const { rows, categoryName, setTarget, removeTarget, setSnooze } = useBudget();
@@ -34,56 +35,54 @@ export function TargetEditorModal({ categoryId, onClose }: { categoryId: string;
     onClose();
   }
 
+  const lbl = 'text-xs text-muted-foreground';
   return (
     <Modal title={`Mục tiêu · ${categoryName(categoryId)}`} onClose={onClose}>
-      <label style={lbl}>Chiến lược</label>
-      <select style={inp} value={strategy} onChange={(e) => setStrategy(e.target.value as TargetStrategy)}>
-        <option value="set_aside">Set aside (gom đều mỗi tháng)</option>
-        <option value="refill">Refill up to (bơm đầy tới mức)</option>
-        <option value="have_balance">Have balance by (đạt số dư trước hạn)</option>
-      </select>
-      <label style={lbl}>Số tiền</label>
-      <input style={inp} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="vd 600.000" />
-      <label style={lbl}>Chu kỳ</label>
-      <select style={inp} value={cadence} onChange={(e) => setCadence(e.target.value as TargetCadence)}>
-        <option value="monthly">Hằng tháng</option>
-        <option value="weekly">Hằng tuần</option>
-        <option value="yearly">Hằng năm</option>
-        <option value="custom">Tùy chỉnh (theo hạn)</option>
-      </select>
-      {isWeekly && (
-        <>
-          <label style={lbl}>Thứ trong tuần</label>
-          <select style={inp} value={dueWeekday} onChange={(e) => setDueWeekday(e.target.value)}>
-            <option value="1">Thứ 2</option><option value="2">Thứ 3</option><option value="3">Thứ 4</option>
-            <option value="4">Thứ 5</option><option value="5">Thứ 6</option><option value="6">Thứ 7</option><option value="0">Chủ nhật</option>
-          </select>
-        </>
-      )}
-      {needsDate && (
-        <>
-          <label style={lbl}>Hạn (deadline)</label>
-          <input style={inp} type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-        </>
-      )}
-      {!isWeekly && !needsDate && (
-        <>
-          <label style={lbl}>Ngày đến hạn trong tháng (tùy chọn, 1–31)</label>
-          <input style={inp} value={dueDay} onChange={(e) => setDueDay(e.target.value)} placeholder="vd 15" />
-        </>
-      )}
-      <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-        <button onClick={save} style={{ flex: 1, background: '#1f9d55', color: '#fff', border: 0, borderRadius: 8, padding: '9px' }}>Lưu</button>
-        <button onClick={async () => { await setSnooze(categoryId, !row.snoozed); onClose(); }}>
-          {row.snoozed ? 'Bỏ snooze' : '😴 Snooze tháng này'}
-        </button>
+      <div className="space-y-2">
+        <div><Label className={lbl}>Chiến lược</Label>
+          <Select value={strategy} onValueChange={(v) => setStrategy(v as TargetStrategy)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="set_aside">Set aside (gom đều mỗi tháng)</SelectItem>
+              <SelectItem value="refill">Refill up to (bơm đầy tới mức)</SelectItem>
+              <SelectItem value="have_balance">Have balance by (đạt số dư trước hạn)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div><Label className={lbl}>Số tiền</Label>
+          <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="vd 600.000" />
+        </div>
+        <div><Label className={lbl}>Chu kỳ</Label>
+          <Select value={cadence} onValueChange={(v) => setCadence(v as TargetCadence)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monthly">Hằng tháng</SelectItem>
+              <SelectItem value="weekly">Hằng tuần</SelectItem>
+              <SelectItem value="yearly">Hằng năm</SelectItem>
+              <SelectItem value="custom">Tùy chỉnh (theo hạn)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {isWeekly && (<div><Label className={lbl}>Thứ trong tuần</Label>
+          <Select value={dueWeekday} onValueChange={setDueWeekday}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">Thứ 2</SelectItem><SelectItem value="2">Thứ 3</SelectItem><SelectItem value="3">Thứ 4</SelectItem>
+              <SelectItem value="4">Thứ 5</SelectItem><SelectItem value="5">Thứ 6</SelectItem><SelectItem value="6">Thứ 7</SelectItem><SelectItem value="0">Chủ nhật</SelectItem>
+            </SelectContent>
+          </Select></div>)}
+        {needsDate && (<div><Label className={lbl}>Hạn (deadline)</Label>
+          <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>)}
+        {!isWeekly && !needsDate && (<div><Label className={lbl}>Ngày đến hạn trong tháng (tùy chọn, 1–31)</Label>
+          <Input value={dueDay} onChange={(e) => setDueDay(e.target.value)} placeholder="vd 15" /></div>)}
+        <div className="flex gap-2 pt-2">
+          <Button className="flex-1" onClick={save}>Lưu</Button>
+          <Button variant="secondary" onClick={async () => { await setSnooze(categoryId, !row.snoozed); onClose(); }}>
+            {row.snoozed ? 'Bỏ snooze' : '😴 Snooze'}
+          </Button>
+        </div>
+        {t && <Button variant="ghost" className="w-full text-destructive" onClick={async () => { await removeTarget(categoryId); onClose(); }}>Xóa mục tiêu</Button>}
       </div>
-      {t && (
-        <button onClick={async () => { await removeTarget(categoryId); onClose(); }}
-          style={{ marginTop: 8, color: '#c0392b', background: 'none', border: 0, cursor: 'pointer' }}>
-          Xóa mục tiêu
-        </button>
-      )}
     </Modal>
   );
 }
