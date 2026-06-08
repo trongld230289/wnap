@@ -3,7 +3,8 @@ import { useSession } from './hooks/useSession';
 import { supabase } from './lib/supabase';
 import { AuthPage } from './pages/AuthPage';
 import { SetupPage } from './pages/SetupPage';
-import { BudgetHome } from './pages/BudgetHome';
+import { BudgetProvider } from './budget/useBudget';
+import { PlanScreen } from './plan/PlanScreen';
 
 interface Membership { budget_id: string; budget_name: string; }
 
@@ -33,5 +34,13 @@ export default function App() {
   if (loading || checking) return <p>Đang tải…</p>;
   if (!session) return <AuthPage />;
   if (!budget) return <SetupPage onDone={loadBudget} />;
-  return <BudgetHome budget={budget} />;
+  return (
+    <BudgetProvider budgetId={budget.budget_id}>
+      <div style={{ textAlign: 'right', maxWidth: 820, margin: '8px auto 0', fontFamily: 'sans-serif' }}>
+        <span style={{ color: '#777', fontSize: 13, marginRight: 8 }}>{budget.budget_name}</span>
+        <button onClick={() => supabase.auth.signOut()}>Đăng xuất</button>
+      </div>
+      <PlanScreen />
+    </BudgetProvider>
+  );
 }
