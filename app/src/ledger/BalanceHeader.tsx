@@ -2,7 +2,7 @@ import { useBudget } from '../budget/useBudget';
 import { balances } from './ledgerBalances';
 import { formatVnd } from '../budget/format';
 
-export function BalanceHeader({ accountId }: { accountId: string }) {
+export function BalanceHeader({ accountId, onReconcile }: { accountId: string; onReconcile: () => void }) {
   const { accounts, transactions, accountName } = useBudget();
   const txns = accountId === 'all' ? transactions : transactions.filter((t) => t.accountId === accountId);
   const b = balances(txns);
@@ -27,6 +27,7 @@ export function BalanceHeader({ accountId }: { accountId: string }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div><span style={{ fontWeight: 700, fontSize: 15 }}>{title}</span>
           <span style={{ fontSize: 11, color: '#999', marginLeft: 8 }}>{recLabel}</span></div>
+        {accountId !== 'all' && <button onClick={onReconcile} style={{ background: '#2b6cb0', color: '#fff', border: 0, borderRadius: 8, padding: '6px 12px', fontSize: 12 }}>⚖ Đối soát</button>}
       </div>
       <div style={{ display: 'flex', border: '1px solid #eee', borderRadius: 8, marginBottom: 10 }}>
         {cell('Cleared', b.cleared, '#333')}{op('＋')}{cell('Uncleared', b.uncleared, '#caa007')}{op('＝')}{cell('Working', b.working, '#1f9d55')}
