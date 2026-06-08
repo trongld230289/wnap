@@ -8,6 +8,7 @@ import { PlanScreen } from './plan/PlanScreen';
 import { LedgerScreen } from './ledger/LedgerScreen';
 import { AppTabs } from './nav/AppTabs';
 import type { AppTab } from './nav/AppTabs';
+import { Button } from '@/components/ui/button';
 
 interface Membership { budget_id: string; budget_name: string; }
 
@@ -35,15 +36,18 @@ export default function App() {
     else { setBudget(null); setChecking(false); }
   }, [session, loadBudget]);
 
-  if (loading || checking) return <p>Đang tải…</p>;
+  if (loading || checking) return <p className="p-10 text-muted-foreground">Đang tải…</p>;
   if (!session) return <AuthPage />;
   if (!budget) return <SetupPage onDone={loadBudget} />;
   return (
     <BudgetProvider budgetId={budget.budget_id}>
-      <div style={{ textAlign: 'right', maxWidth: 980, margin: '8px auto 0', fontFamily: 'sans-serif' }}>
-        <span style={{ color: '#777', fontSize: 13, marginRight: 8 }}>{budget.budget_name}</span>
-        <button onClick={() => supabase.auth.signOut()}>Đăng xuất</button>
-      </div>
+      <header className="mx-auto flex max-w-[980px] items-center justify-between px-3 pt-3">
+        <span className="text-lg font-bold text-primary">WNAP</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">{budget.budget_name}</span>
+          <Button variant="ghost" size="sm" onClick={() => supabase.auth.signOut()}>Đăng xuất</Button>
+        </div>
+      </header>
       <AppTabs tab={tab} onChange={setTab} />
       {tab === 'plan' ? <PlanScreen /> : <LedgerScreen />}
     </BudgetProvider>
