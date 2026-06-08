@@ -9,6 +9,7 @@ import { MoveMoneyModal } from './MoveMoneyModal';
 import { TargetEditorModal } from './TargetEditorModal';
 import { PLAN_FILTERS } from '../budget/planFilters';
 import type { FilterId } from '../budget/planFilters';
+import { Button } from '@/components/ui/button';
 
 type ModalState =
   | { type: 'assign' }
@@ -21,7 +22,7 @@ export function PlanScreen() {
   const [active, setActive] = useState<FilterId | null>(null);
   const [modal, setModal] = useState<ModalState>(null);
 
-  if (loading) return <p style={{ fontFamily: 'sans-serif', margin: 40 }}>Đang tải ngân sách…</p>;
+  if (loading) return <p className="m-10 text-muted-foreground">Đang tải ngân sách…</p>;
 
   const predicate = active ? PLAN_FILTERS.find((f) => f.id === active)!.predicate : () => true;
   const visibleRows = rows.filter(predicate);
@@ -39,23 +40,25 @@ export function PlanScreen() {
   }
 
   return (
-    <div style={{ maxWidth: 820, margin: '24px auto', fontFamily: 'sans-serif', padding: '0 12px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+    <div className="mx-auto max-w-[980px] px-3 py-6">
+      <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <MonthNav />
         <RtaHeader onAssign={() => setModal({ type: 'assign' })} />
       </div>
-      <div style={{ marginBottom: 12 }}>
+      <div className="mb-3">
         <FilterCards active={active} onToggle={(id) => setActive(active === id ? null : id)} />
       </div>
-      <div style={{ marginBottom: 8, display: 'flex', gap: 8 }}>
-        <button onClick={onAddGroup}>＋ Nhóm</button>
-        <button onClick={onAddCategory}>＋ Category</button>
+      <div className="mb-2 flex gap-2">
+        <Button variant="outline" size="sm" onClick={onAddGroup}>＋ Nhóm</Button>
+        <Button variant="outline" size="sm" onClick={onAddCategory}>＋ Category</Button>
       </div>
-      <CategoryTable
-        visibleRows={visibleRows}
-        onMoveMoney={(id) => setModal({ type: 'move', fromId: id })}
-        onEditTarget={(id) => setModal({ type: 'target', categoryId: id })}
-      />
+      <div className="overflow-x-auto">
+        <CategoryTable
+          visibleRows={visibleRows}
+          onMoveMoney={(id) => setModal({ type: 'move', fromId: id })}
+          onEditTarget={(id) => setModal({ type: 'target', categoryId: id })}
+        />
+      </div>
       {modal?.type === 'assign' && <AssignPopover onClose={() => setModal(null)} />}
       {modal?.type === 'move' && <MoveMoneyModal fromId={modal.fromId} onClose={() => setModal(null)} />}
       {modal?.type === 'target' && <TargetEditorModal categoryId={modal.categoryId} onClose={() => setModal(null)} />}
