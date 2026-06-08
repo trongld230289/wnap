@@ -4,7 +4,9 @@
 
 **Goal:** Đồng bộ thời gian thực giữa 2 thiết bị dùng chung budget — thay đổi của người này hiện trên máy người kia ≤2s, không reload.
 
-**Architecture:** Subscribe Supabase `postgres_changes` cho 8 bảng (filter `budget_id`) qua một channel; mọi event → gọi `refetch()` đã được **debounce 400ms** ở `BudgetProvider`. Tận dụng `refetch()` + engine recompute sẵn có; không đổi logic mutation. Phần testable (`debounce`) là pure, test bằng vitest fake timers.
+**Architecture:** Realtime Broadcast — trigger DB phát `db_change` tới topic `budget:<id>`; client subscribe **private channel** (authorize qua RLS `realtime.messages`); mỗi broadcast → `refetch()` đã **debounce 400ms** ở `BudgetProvider`. Tận dụng `refetch()` + engine recompute sẵn có; không đổi logic mutation. `debounce` là pure, test bằng vitest fake timers.
+
+> ⚠️ **PIVOT (đã thực thi & verify):** Plan ban đầu (Task 2/4 dưới) dùng `postgres_changes` + publication (`0005`). Verify e2e cho thấy postgres_changes **bị RLS chặn** (0 event dù SUBSCRIBED; xác nhận bằng cách disable RLS → event chảy). Đã chuyển sang **Broadcast**: `useRealtime` dùng private broadcast channel; migration **`0006_broadcast.sql`** (trigger 8 bảng + policy `realtime.messages`) thay vai trò của `0005`. Task 2 và Task 4 đọc theo bản broadcast trong spec `2026-06-08-wnap-realtime-sync-design.md` §2/§4. Task 1 (debounce), Task 3 (wiring `BudgetProvider`), Task 0/5 (branch/verify/merge) **giữ nguyên**.
 
 **Tech Stack:** React 19 + TypeScript, `@supabase/supabase-js` realtime (đã có), Postgres publication migration.
 

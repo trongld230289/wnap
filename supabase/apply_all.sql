@@ -202,3 +202,52 @@ end $$;
 grant execute on function create_budget(text, text) to authenticated;
 grant execute on function generate_invite(uuid) to authenticated;
 grant execute on function join_budget(text, text) to authenticated;
+
+-- ===== 0005_realtime.sql =====
+do $$
+declare t text;
+begin
+  foreach t in array array[
+    'category_groups','categories','targets','target_snoozes',
+    'assignments','transactions','accounts','payees'
+  ] loop
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t
+    ) then
+      execute format('alter publication supabase_realtime add table public.%I', t);
+    end if;
+  end loop;
+end $$;
+
+-- ===== 0006_broadcast.sql =====
+drop policy if exists "budget members receive broadcast" on realtime.messages;
+create policy "budget members receive broadcast"
+on realtime.messages for select to authenticated
+using (
+  realtime.topic() like 'budget:%'
+  and public.is_budget_member( split_part(realtime.topic(), ':', 2)::uuid )
+);
+
+create or replace function public.broadcast_budget_change()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare bid uuid;
+begin
+  if tg_op = 'DELETE' then bid := old.budget_id; else bid := new.budget_id; end if;
+  perform realtime.broadcast_changes(
+    'budget:' || bid::text, 'db_change', tg_op, tg_table_name, tg_table_schema, new, old
+  );
+  return null;
+end; $$;
+
+do $$
+declare t text;
+begin
+  foreach t in array array[
+    'category_groups','categories','targets','target_snoozes',
+    'assignments','transactions','accounts','payees'
+  ] loop
+    execute format('drop trigger if exists broadcast_budget_change on public.%I', t);
+    execute format('create trigger broadcast_budget_change after insert or update or delete on public.%I for each row execute function public.broadcast_budget_change()', t);
+  end loop;
+end $$;
