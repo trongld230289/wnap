@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function AuthPage() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
@@ -21,27 +24,25 @@ export function AuthPage() {
   }
 
   return (
-    <div style={{ maxWidth: 320, margin: '80px auto', fontFamily: 'sans-serif' }}>
-      <h1>WNAP</h1>
-      <form onSubmit={submit}>
-        <input
-          type="email" placeholder="Email" value={email} required
-          onChange={(e) => setEmail(e.target.value)}
-          style={{ display: 'block', width: '100%', marginBottom: 8 }}
-        />
-        <input
-          type="password" placeholder="Mật khẩu (≥6 ký tự)" value={password} required minLength={6}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{ display: 'block', width: '100%', marginBottom: 8 }}
-        />
-        <button type="submit" disabled={busy}>
-          {mode === 'signin' ? 'Đăng nhập' : 'Đăng ký'}
-        </button>
-      </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <button onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>
-        {mode === 'signin' ? 'Chưa có tài khoản? Đăng ký' : 'Đã có tài khoản? Đăng nhập'}
-      </button>
+    <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle className="text-center text-2xl font-bold text-primary">WNAP</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={submit} className="space-y-3">
+            <Input type="email" placeholder="Email" value={email} required onChange={(e) => setEmail(e.target.value)} />
+            <Input type="password" placeholder="Mật khẩu (≥6 ký tự)" value={password} required minLength={6} onChange={(e) => setPassword(e.target.value)} />
+            <Button type="submit" className="w-full" disabled={busy}>
+              {mode === 'signin' ? 'Đăng nhập' : 'Đăng ký'}
+            </Button>
+          </form>
+          {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+          <button onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')} className="mt-3 w-full text-sm text-muted-foreground hover:text-foreground">
+            {mode === 'signin' ? 'Chưa có tài khoản? Đăng ký' : 'Đã có tài khoản? Đăng nhập'}
+          </button>
+        </CardContent>
+      </Card>
     </div>
   );
 }
