@@ -7,6 +7,7 @@ import { CategoryTable } from './CategoryTable';
 import { AssignPopover } from './AssignPopover';
 import { MoveMoneyModal } from './MoveMoneyModal';
 import { TargetEditorModal } from './TargetEditorModal';
+import { ActivityDialog } from './ActivityDialog';
 import { PLAN_FILTERS } from '../budget/planFilters';
 import type { FilterId } from '../budget/planFilters';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ export function PlanScreen() {
   const { loading, rows, groups, addGroup, addCategory } = useBudget();
   const [active, setActive] = useState<FilterId | null>(null);
   const [modal, setModal] = useState<ModalState>(null);
+  const [showActivity, setShowActivity] = useState(false);
 
   if (loading) return <p className="m-10 text-muted-foreground">Đang tải ngân sách…</p>;
 
@@ -51,6 +53,7 @@ export function PlanScreen() {
       <div className="mb-2 flex gap-2">
         <Button variant="outline" size="sm" onClick={onAddGroup}>＋ Nhóm</Button>
         <Button variant="outline" size="sm" onClick={onAddCategory}>＋ Category</Button>
+        <Button variant="outline" size="sm" onClick={() => setShowActivity(true)}>📋 Hoạt động</Button>
       </div>
       <div className="overflow-x-auto">
         <CategoryTable
@@ -62,6 +65,7 @@ export function PlanScreen() {
       {modal?.type === 'assign' && <AssignPopover onClose={() => setModal(null)} />}
       {modal?.type === 'move' && <MoveMoneyModal fromId={modal.fromId} onClose={() => setModal(null)} />}
       {modal?.type === 'target' && <TargetEditorModal categoryId={modal.categoryId} onClose={() => setModal(null)} />}
+      {showActivity && <ActivityDialog onClose={() => setShowActivity(false)} />}
     </div>
   );
 }
