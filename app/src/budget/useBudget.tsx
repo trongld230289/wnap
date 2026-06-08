@@ -51,6 +51,11 @@ interface BudgetCtx {
   addAccount: (name: string, type: AccountType) => Promise<void>;
   upsertPayee: (name: string) => Promise<string | null>;
   addTransaction: (t: NewTransaction) => Promise<void>;
+  setTxStatus: (id: string, status: 'cleared' | 'uncleared') => Promise<void>;
+  updateTransaction: (id: string, patch: { date?: string; payeeId?: string | null; categoryId?: string | null; memo?: string | null; amount?: number }) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
+  reconcileAccount: (accountId: string) => Promise<void>;
+  addTransfer: (fromId: string, toId: string, amount: number, date: string) => Promise<void>;
 }
 
 const Ctx = createContext<BudgetCtx | null>(null);
@@ -199,6 +204,45 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
     await refetch();
   }, [budgetId, refetch]);
 
+  const setTxStatus = useCallback(async (id: string, status: 'cleared' | 'uncleared') => {
+    await supabase.from('transactions').update({ status }).eq('id', id);
+    await refetch();
+  }, [refetch]);
+
+  const updateTransaction = useCallback(async (id: string, patch: { date?: string; payeeId?: string | null; categoryId?: string | null; memo?: string | null; amount?: number }) => {
+    const row: Record<string, unknown> = {};
+    if (patch.date !== undefined) row.date = patch.date;
+    if (patch.payeeId !== undefined) row.payee_id = patch.payeeId;
+    if (patch.categoryId !== undefined) row.category_id = patch.categoryId;
+    if (patch.memo !== undefined) row.memo = patch.memo;
+    if (patch.amount !== undefined) row.amount = patch.amount;
+    await supabase.from('transactions').update(row).eq('id', id);
+    await refetch();
+  }, [refetch]);
+
+  const deleteTransaction = useCallback(async (id: string) => {
+    const r = raw.transactions.find((t) => t.id === id);
+    if (r?.transfer_id) await supabase.from('transactions').delete().eq('transfer_id', r.transfer_id);
+    else await supabase.from('transactions').delete().eq('id', id);
+    await refetch();
+  }, [raw, refetch]);
+
+  const reconcileAccount = useCallback(async (accountId: string) => {
+    await supabase.from('transactions').update({ status: 'reconciled' }).eq('account_id', accountId).eq('status', 'cleared');
+    await supabase.from('accounts').update({ reconciled_at: new Date().toISOString() }).eq('id', accountId);
+    await refetch();
+  }, [refetch]);
+
+  const addTransfer = useCallback(async (fromId: string, toId: string, amount: number, date: string) => {
+    const { data: authData } = await supabase.auth.getUser();
+    const transferId = crypto.randomUUID();
+    await supabase.from('transactions').insert([
+      { budget_id: budgetId, account_id: fromId, date, category_id: null, payee_id: null, memo: null, amount: -amount, status: 'uncleared', created_by: authData.user?.id, transfer_id: transferId },
+      { budget_id: budgetId, account_id: toId, date, category_id: null, payee_id: null, memo: null, amount, status: 'uncleared', created_by: authData.user?.id, transfer_id: transferId },
+    ]);
+    await refetch();
+  }, [budgetId, refetch]);
+
   const value: BudgetCtx = {
     loading, viewMonth, setViewMonth, rows, rta, summaries, firstMonth, groups, allCategories,
     accounts, payees, transactions,
@@ -207,6 +251,7 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
     groupIdOf: (id) => groupById.get(id) ?? '',
     refetch, setAssigned, addGroup, addCategory, setTarget, removeTarget, setSnooze, moveMoney, applyProposals,
     addAccount, upsertPayee, addTransaction,
+    setTxStatus, updateTransaction, deleteTransaction, reconcileAccount, addTransfer,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
