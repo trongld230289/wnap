@@ -9,6 +9,7 @@ import { LedgerScreen } from './ledger/LedgerScreen';
 import { AppTabs } from './nav/AppTabs';
 import type { AppTab } from './nav/AppTabs';
 import { Button } from '@/components/ui/button';
+import { DelightProvider, useDelight } from './delight/useDelight';
 
 interface Membership { budget_id: string; budget_name: string; }
 
@@ -41,15 +42,33 @@ export default function App() {
   if (!budget) return <SetupPage onDone={loadBudget} />;
   return (
     <BudgetProvider budgetId={budget.budget_id}>
-      <header className="mx-auto flex max-w-[980px] items-center justify-between px-3 pt-3">
-        <span className="text-lg font-bold text-primary">WNAP</span>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">{budget.budget_name}</span>
-          <Button variant="ghost" size="sm" onClick={() => supabase.auth.signOut()}>Đăng xuất</Button>
-        </div>
-      </header>
-      <AppTabs tab={tab} onChange={setTab} />
-      {tab === 'plan' ? <PlanScreen /> : <LedgerScreen />}
+      <DelightProvider>
+        <header className="mx-auto flex max-w-[980px] items-center justify-between px-3 pt-3">
+          <span className="text-lg font-bold text-primary">WNAP</span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">{budget.budget_name}</span>
+            <MotionToggle />
+            <Button variant="ghost" size="sm" onClick={() => supabase.auth.signOut()}>Đăng xuất</Button>
+          </div>
+        </header>
+        <AppTabs tab={tab} onChange={setTab} />
+        {tab === 'plan' ? <PlanScreen /> : <LedgerScreen />}
+      </DelightProvider>
     </BudgetProvider>
+  );
+}
+
+function MotionToggle() {
+  const { userEnabled, toggle } = useDelight();
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={toggle}
+      title={userEnabled ? 'Tắt hiệu ứng chuyển động' : 'Bật hiệu ứng chuyển động'}
+      aria-pressed={userEnabled}
+    >
+      {userEnabled ? '✨ Hiệu ứng: Bật' : 'Hiệu ứng: Tắt'}
+    </Button>
   );
 }
