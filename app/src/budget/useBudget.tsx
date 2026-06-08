@@ -2,6 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { supabase } from '../lib/supabase';
 import { useRealtime } from './useRealtime';
 import { debounce } from './debounce';
+import { mapActionLog } from './actionLog';
+import type { RawActionLog, BudgetMember, ActionLogEntry } from './actionLog';
 import { computeThrough, buildPlanRows, monthOf } from '../engine';
 import type { Month, PlanRow, Proposal, MonthSummary, TargetStrategy, TargetCadence } from '../engine';
 import { toBudgetInput, deriveFirstMonth, mapAccounts, mapPayees, mapLedgerTxns } from '../lib/mappers';
@@ -38,6 +40,7 @@ interface BudgetCtx {
   accounts: LedgerAccount[];
   payees: LedgerPayee[];
   transactions: LedgerTxn[];
+  recentMoves: ActionLogEntry[];
   categoryName: (id: string) => string;
   accountName: (id: string) => string;
   groupIdOf: (categoryId: string) => string;
@@ -67,10 +70,12 @@ interface FetchResult {
   groups: BudgetCtx['groups'];
   accounts: RawAccount[];
   payees: RawPayee[];
+  actionLog: RawActionLog[];
+  members: BudgetMember[];
 }
 
 async function fetchRaw(budgetId: string): Promise<FetchResult> {
-  const [g, c, t, s, a, tx, acc, pay] = await Promise.all([
+  const [g, c, t, s, a, tx, acc, pay, al, mem] = await Promise.all([
     supabase.from('category_groups').select('id,name,is_system,sort_order').eq('budget_id', budgetId).order('sort_order'),
     supabase.from('categories').select('id,group_id,name,kind,is_system,sort_order').eq('budget_id', budgetId).order('sort_order'),
     supabase.from('targets').select('category_id,strategy,amount,cadence,due_day,due_weekday,due_date').eq('budget_id', budgetId),
@@ -79,6 +84,8 @@ async function fetchRaw(budgetId: string): Promise<FetchResult> {
     supabase.from('transactions').select('id,account_id,date,category_id,amount,status,payee_id,memo,transfer_id').eq('budget_id', budgetId).order('date', { ascending: false }),
     supabase.from('accounts').select('id,name,type,reconciled_at,sort_order').eq('budget_id', budgetId).eq('closed', false).order('sort_order'),
     supabase.from('payees').select('id,name').eq('budget_id', budgetId),
+    supabase.from('action_log').select('id,user_id,entity_ref,old_value,new_value,created_at').eq('budget_id', budgetId).order('created_at', { ascending: false }).limit(50),
+    supabase.from('budget_members').select('user_id,display_name').eq('budget_id', budgetId),
   ]);
   return {
     raw: {
@@ -91,6 +98,8 @@ async function fetchRaw(budgetId: string): Promise<FetchResult> {
     groups: (g.data ?? []).map((r) => ({ id: r.id as string, name: r.name as string, isSystem: r.is_system as boolean })),
     accounts: (acc.data ?? []) as RawAccount[],
     payees: (pay.data ?? []) as RawPayee[],
+    actionLog: (al.data ?? []) as RawActionLog[],
+    members: (mem.data ?? []) as BudgetMember[],
   };
 }
 
@@ -100,6 +109,8 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
   const [groups, setGroups] = useState<BudgetCtx['groups']>([]);
   const [rawAccounts, setRawAccounts] = useState<RawAccount[]>([]);
   const [rawPayees, setRawPayees] = useState<RawPayee[]>([]);
+  const [rawActionLog, setRawActionLog] = useState<RawActionLog[]>([]);
+  const [members, setMembers] = useState<BudgetMember[]>([]);
   const [viewMonth, setViewMonth] = useState<Month>(monthOf(new Date().toISOString()));
 
   const refetch = useCallback(async () => {
@@ -108,6 +119,8 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
     setGroups(r.groups);
     setRawAccounts(r.accounts);
     setRawPayees(r.payees);
+    setRawActionLog(r.actionLog);
+    setMembers(r.members);
     setLoading(false);
   }, [budgetId]);
 
@@ -134,6 +147,7 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
   const accounts = useMemo(() => mapAccounts(rawAccounts), [rawAccounts]);
   const payees = useMemo(() => mapPayees(rawPayees), [rawPayees]);
   const transactions = useMemo(() => mapLedgerTxns(raw.transactions), [raw]);
+  const recentMoves = useMemo(() => mapActionLog(rawActionLog, members), [rawActionLog, members]);
   const allCategories = useMemo(() => raw.categories.map((c) => ({ id: c.id, name: c.name, isSystem: c.is_system })), [raw]);
   const accNameById = useMemo(() => new Map(rawAccounts.map((a) => [a.id, a.name])), [rawAccounts]);
 
@@ -251,7 +265,7 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
 
   const value: BudgetCtx = {
     loading, viewMonth, setViewMonth, rows, rta, summaries, firstMonth, groups, allCategories,
-    accounts, payees, transactions,
+    accounts, payees, transactions, recentMoves,
     categoryName: (id) => nameById.get(id) ?? id,
     accountName: (id) => accNameById.get(id) ?? id,
     groupIdOf: (id) => groupById.get(id) ?? '',
