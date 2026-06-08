@@ -3,7 +3,9 @@
 **Ngày:** 2026-06-08
 **Phạm vi:** Phase 3, sub-project thứ 3. Đồng bộ thời gian thực giữa 2 thiết bị dùng chung 1 budget (2 vợ chồng): thay đổi của người này tự hiện trên máy người kia **≤ 2 giây**, không cần reload. **Không đổi engine/logic mutation — chỉ thêm lớp lắng nghe → refetch.**
 
-**Hướng đã chốt:** **postgres_changes per-table (filter `budget_id`) → debounced `refetch()`** (hướng A). UX khi nhận thay đổi remote: **im lặng**, để Delight Layer làm tín hiệu trực quan (số count-up, sweep… tự chạy cho hành động của partner).
+**Hướng đã chốt (đã sửa sau verify):** **Realtime Broadcast qua trigger DB → private channel → debounced `refetch()`**. UX khi nhận thay đổi remote: **im lặng**, để Delight Layer làm tín hiệu trực quan (số count-up, sweep… tự chạy cho hành động của partner).
+
+> ⚠️ **Đổi hướng so với bản đầu (postgres_changes).** Bản đầu dùng `postgres_changes` per-table + filter `budget_id`. Verify e2e 2-tab cho thấy: channel SUBSCRIBED nhưng **0 event** (cả INSERT lẫn UPDATE, có/không filter). Cô lập bằng `disable row level security` → event chảy ngay ⇒ **root cause: RLS chặn postgres_changes** (auth.uid() không pass trong RLS check dựa WAL; thử cả auto-auth của supabase-js lẫn `setAuth` thủ công đều fail). Chuyển sang **Broadcast** — dùng authorization qua **private channel** (kiểm RLS `realtime.messages` lúc subscribe bằng token user, đường được hỗ trợ) — verify chạy đúng **với RLS bật**.
 
 ---
 
@@ -17,11 +19,11 @@ Data hộ gia đình nhỏ → refetch-toàn-bộ rẻ; không cần patch state
 
 **Module mới `app/src/budget/useRealtime.ts`:**
 - Hook `useRealtime(budgetId: string, onChange: () => void)`.
-- Tạo **một channel** tên `budget:<budgetId>`.
-- Subscribe `postgres_changes` (`event: '*'`, `schema: 'public'`) cho **8 bảng**, mỗi bảng 1 listener với `filter: 'budget_id=eq.<budgetId>'`:
-  `category_groups, categories, targets, target_snoozes, assignments, transactions, accounts, payees`.
-- Mỗi event bất kỳ → gọi `onChange()` (đã được debounce ở tầng provider — xem dưới).
-- `subscribe()` khi mount/`budgetId` đổi; `supabase.removeChannel(channel)` khi cleanup.
+- Tạo **một private channel** `supabase.channel('budget:<budgetId>', { config: { private: true } })`.
+- Lắng nghe `channel.on('broadcast', { event: 'db_change' }, () => onChange())`.
+- Trước `subscribe()`: lấy session token và `supabase.realtime.setAuth(token)` (private channel cần token để authorization).
+- Mỗi broadcast → `onChange()` (đã debounce ở tầng provider). `removeChannel` khi cleanup; cờ `cancelled` tránh subscribe sau unmount (getSession async).
+- Broadcast đến từ **trigger DB trên 8 bảng** (xem §4), không cần client liệt kê bảng.
 
 **Debounce util mới `app/src/budget/debounce.ts`:**
 - `debounce<T extends () => void>(fn: T, ms: number): T & { cancel: () => void }` — trailing debounce, gộp nhiều event sát nhau thành 1 lần gọi. Pure, test được.
@@ -35,40 +37,38 @@ Data hộ gia đình nhỏ → refetch-toàn-bộ rẻ; không cần patch state
 ## 3. Luồng dữ liệu
 
 ```
-User B sửa Assigned  ──upsert──▶ Supabase (assignments)
-                                    │ postgres_changes (INSERT/UPDATE)
-        máy User A ◀───event───────┘
+User B sửa Assigned ──upsert──▶ Supabase (assignments)
+                                   │ AFTER trigger broadcast_budget_change
+                                   │ realtime.broadcast_changes('budget:<id>','db_change',…)
+        máy User A ◀──broadcast───┘ (private channel, authorize qua realtime.messages RLS)
         useRealtime → scheduleRefetch (debounce 400ms)
         → refetch() → engine tính lại (useMemo) → rows đổi
         → Delight Layer tự chạy animation cho thay đổi của B
 ```
 
-Mục tiêu trễ: event Supabase thường < 1s + debounce 400ms ⇒ ≤ 2s.
+Mục tiêu trễ: broadcast thường < 1s + debounce 400ms ⇒ ≤ 2s. (Verify thực tế ~tức thì.)
 
 ## 4. Migration Supabase
 
 `supabase/migrations/0005_realtime.sql` — thêm 8 bảng vào publication realtime, **idempotent** (chỉ add bảng chưa có, tránh lỗi "already member"):
 ```sql
--- Bật realtime cho các bảng của budget (Module D)
-do $$
-declare t text;
-begin
-  foreach t in array array[
-    'category_groups','categories','targets','target_snoozes',
-    'assignments','transactions','accounts','payees'
-  ] loop
-    if not exists (
-      select 1 from pg_publication_tables
-      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t
-    ) then
-      execute format('alter publication supabase_realtime add table public.%I', t);
-    end if;
-  end loop;
-end $$;
+-- (0005 — KHÔNG dùng cho broadcast, giữ lại vô hại) publication idempotent…
 ```
-- Phải **apply lên Supabase** (như 0004 trước đây). Cũng append vào `supabase/apply_all.sql`.
-- RLS sẵn có (0002) → realtime tôn trọng RLS; client chỉ nhận event của budget mình là thành viên. `REPLICA IDENTITY` mặc định đủ (ta chỉ cần biết "có thay đổi", không cần giá trị cũ).
-- 8 bảng đều có cột `budget_id` (đã dùng để filter trong `fetchRaw`) → filter `budget_id=eq.<id>` hợp lệ.
+- **`0005_realtime.sql`** (thêm 8 bảng vào publication `supabase_realtime`) là di sản của hướng postgres_changes — **không cần cho broadcast**, đã apply nên giữ lại vô hại.
+
+**`supabase/migrations/0006_broadcast.sql`** — hướng broadcast thực dùng, gồm:
+1. **Authorization policy** trên `realtime.messages`: budget member được `select` (nhận) broadcast khi `realtime.topic()` khớp `budget:<budget_id>` của mình:
+   ```sql
+   create policy "budget members receive broadcast" on realtime.messages
+   for select to authenticated using (
+     realtime.topic() like 'budget:%'
+     and public.is_budget_member( split_part(realtime.topic(), ':', 2)::uuid )
+   );
+   ```
+2. **Hàm trigger** `public.broadcast_budget_change()` (SECURITY DEFINER): lấy `budget_id` từ NEW/OLD theo `tg_op`, gọi `realtime.broadcast_changes('budget:'||bid, 'db_change', tg_op, tg_table_name, tg_table_schema, new, old)`.
+3. **Trigger** `after insert or update or delete … for each row` trên **8 bảng** (loop idempotent: drop-then-create).
+- Phải **apply lên Supabase** (như các migration trước). Cũng append vào `supabase/apply_all.sql`.
+- RLS sẵn có (0002) không đổi; broadcast được authorize qua policy `realtime.messages` ở trên. Trigger có sẵn NEW/OLD đầy đủ → **không cần REPLICA IDENTITY FULL**.
 
 ## 5. Conflict / edge / error
 
@@ -93,10 +93,10 @@ end $$;
 - **E2e Playwright (2 browser context):** user A và user B cùng budget (2 test account `wnap.husband` / `wnap.wife`). A sửa Assigned 1 category → trong ≤2s, màn B tự cập nhật số (không reload). Kiểm thêm: A thêm transaction inflow → RTA ở B tăng. Đóng/mở lại để chắc cleanup không lỗi.
 - **Regression:** `npm run build` pass; toàn bộ test cũ (104) + debounce test mới xanh.
 
-## 8. Verify hoàn thành
-- 2 thiết bị thật trên Supabase: thay đổi 1 bên hiện bên kia ≤2s, không reload; Delight chạy cho thay đổi remote.
-- Migration 0005 đã apply; realtime hoạt động (không lỗi publication).
-- Build pass, test xanh.
+## 8. Verify hoàn thành ✅ (đã verify e2e)
+- 2 tab (2 client realtime) cùng budget, **RLS bật**: tab A sửa Assigned → tab B nhận `broadcast db_change` + UI tự cập nhật **không reload** (log `[RT] broadcast UPDATE assignments`, ~tức thì). Private channel `SUBSCRIBED` (authorization pass).
+- Migration `0006_broadcast.sql` đã apply lên Supabase.
+- Build pass, 107 test xanh.
 
 ## 9. Ghi chú triển khai
 - ⚠️ Type-check thật = `npm run build` (root `tsconfig.json` có `files: []`). KHÔNG `tsc --noEmit`. (Xem [[wnap-phase-status]].)
