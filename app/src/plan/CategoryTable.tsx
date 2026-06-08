@@ -30,7 +30,13 @@ function AssignedCell({ row }: { row: PlanRow }) {
   );
 }
 
-export function CategoryTable({ visibleRows }: { visibleRows: PlanRow[] }) {
+interface Props {
+  visibleRows: PlanRow[];
+  onMoveMoney: (categoryId: string) => void;
+  onEditTarget: (categoryId: string) => void;
+}
+
+export function CategoryTable({ visibleRows, onMoveMoney, onEditTarget }: Props) {
   const { groups, groupIdOf, categoryName } = useBudget();
   const byGroup = new Map<string, PlanRow[]>();
   for (const r of visibleRows) {
@@ -60,10 +66,18 @@ export function CategoryTable({ visibleRows }: { visibleRows: PlanRow[] }) {
                   <tr><td colSpan={4} style={{ background: '#f4f4f6', fontWeight: 600, color: '#444', padding: '7px 12px' }}>{g.name}</td></tr>
                   {rows.map((r) => (
                     <tr key={r.categoryId}>
-                      <td style={{ ...cell, textAlign: 'left' }}>{categoryName(r.categoryId)}</td>
+                      <td style={{ ...cell, textAlign: 'left' }}>
+                        {categoryName(r.categoryId)}
+                        <button onClick={() => onEditTarget(r.categoryId)} title="Mục tiêu"
+                          style={{ marginLeft: 6, border: 0, background: 'none', cursor: 'pointer', opacity: 0.6 }}>🎯</button>
+                      </td>
                       <td style={cell}><AssignedCell row={r} /></td>
                       <td style={cell}>{formatVnd(r.activity)}</td>
-                      <td style={cell}><AvailableBar row={r} /></td>
+                      <td style={cell}>
+                        <span onClick={() => onMoveMoney(r.categoryId)} title="Chuyển tiền" style={{ cursor: 'pointer' }}>
+                          <AvailableBar row={r} />
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
