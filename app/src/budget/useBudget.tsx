@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useRealtime } from './useRealtime';
+import { debounce } from './debounce';
 import { computeThrough, buildPlanRows, monthOf } from '../engine';
 import type { Month, PlanRow, Proposal, MonthSummary, TargetStrategy, TargetCadence } from '../engine';
 import { toBudgetInput, deriveFirstMonth, mapAccounts, mapPayees, mapLedgerTxns } from '../lib/mappers';
@@ -110,6 +112,10 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
   }, [budgetId]);
 
   useEffect(() => { refetch(); }, [refetch]);
+
+  const scheduleRefetch = useMemo(() => debounce(() => { void refetch(); }, 400), [refetch]);
+  useRealtime(budgetId, scheduleRefetch);
+  useEffect(() => () => scheduleRefetch.cancel(), [scheduleRefetch]);
 
   const { rows, rta, summaries, firstMonth } = useMemo(() => {
     const dataFirst = deriveFirstMonth(raw, viewMonth);
