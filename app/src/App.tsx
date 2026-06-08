@@ -5,6 +5,9 @@ import { AuthPage } from './pages/AuthPage';
 import { SetupPage } from './pages/SetupPage';
 import { BudgetProvider } from './budget/useBudget';
 import { PlanScreen } from './plan/PlanScreen';
+import { LedgerScreen } from './ledger/LedgerScreen';
+import { AppTabs } from './nav/AppTabs';
+import type { AppTab } from './nav/AppTabs';
 
 interface Membership { budget_id: string; budget_name: string; }
 
@@ -12,6 +15,7 @@ export default function App() {
   const { session, loading } = useSession();
   const [budget, setBudget] = useState<Membership | null>(null);
   const [checking, setChecking] = useState(true);
+  const [tab, setTab] = useState<AppTab>('plan');
 
   const loadBudget = useCallback(async () => {
     setChecking(true);
@@ -36,11 +40,12 @@ export default function App() {
   if (!budget) return <SetupPage onDone={loadBudget} />;
   return (
     <BudgetProvider budgetId={budget.budget_id}>
-      <div style={{ textAlign: 'right', maxWidth: 820, margin: '8px auto 0', fontFamily: 'sans-serif' }}>
+      <div style={{ textAlign: 'right', maxWidth: 980, margin: '8px auto 0', fontFamily: 'sans-serif' }}>
         <span style={{ color: '#777', fontSize: 13, marginRight: 8 }}>{budget.budget_name}</span>
         <button onClick={() => supabase.auth.signOut()}>Đăng xuất</button>
       </div>
-      <PlanScreen />
+      <AppTabs tab={tab} onChange={setTab} />
+      {tab === 'plan' ? <PlanScreen /> : <LedgerScreen />}
     </BudgetProvider>
   );
 }
