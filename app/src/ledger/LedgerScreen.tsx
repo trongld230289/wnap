@@ -45,7 +45,7 @@ export function LedgerScreen() {
               </>
             ) : <span style={{ fontSize: 12, color: '#aaa' }}>Chọn 1 tài khoản để thêm giao dịch{accounts.length === 0 ? ' (tạo tài khoản trước)' : ''}</span>}
           </div>
-          {(adding || editing) && canAdd && <TransactionForm accountId={selected} editing={editing} onDone={reset} />}
+          {(adding || editing) && canAdd && <TransactionForm key={editing?.id ?? 'new'} accountId={selected} editing={editing} onDone={reset} />}
           <TransactionTable txns={txns} onEdit={onEdit} onDelete={onDelete} />
         </div>
       </div>
