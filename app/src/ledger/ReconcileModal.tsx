@@ -3,8 +3,9 @@ import { Modal } from '../plan/Modal';
 import { useBudget } from '../budget/useBudget';
 import { balances } from './ledgerBalances';
 import { formatVnd, parseVnd } from '../budget/format';
-
-const inp: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '7px 9px', margin: '6px 0', border: '1px solid #d7d7db', borderRadius: 8 };
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 export function ReconcileModal({ accountId, onClose }: { accountId: string; onClose: () => void }) {
   const { transactions, accountName, reconcileAccount } = useBudget();
@@ -19,13 +20,17 @@ export function ReconcileModal({ accountId, onClose }: { accountId: string; onCl
 
   return (
     <Modal title={`Đối soát · ${accountName(accountId)}`} onClose={onClose}>
-      <div style={{ fontSize: 13 }}>Cleared (theo app): <b>{formatVnd(cleared)}₫</b></div>
-      <label style={{ fontSize: 11, color: '#999' }}>Số dư thực ở ngân hàng</label>
-      <input style={inp} value={bank} onChange={(e) => setBank(e.target.value)} />
-      <div style={{ fontSize: 13, color: diff === 0 ? '#1f9d55' : '#caa007' }}>
-        Chênh lệch: {formatVnd(diff)}₫ {diff === 0 ? '✓ khớp' : '(kiểm tra lại giao dịch nếu cần)'}
+      <div className="space-y-3">
+        <div className="text-sm">Cleared (theo app): <b className="tabular-nums">{formatVnd(cleared)}₫</b></div>
+        <div>
+          <Label className="text-xs text-muted-foreground">Số dư thực ở ngân hàng</Label>
+          <Input value={bank} onChange={(e) => setBank(e.target.value)} className="tabular-nums" />
+        </div>
+        <div className={`text-sm ${diff === 0 ? 'text-status-green' : 'text-status-amber'}`}>
+          Chênh lệch: <span className="tabular-nums">{formatVnd(diff)}₫</span> {diff === 0 ? '✓ khớp' : '(kiểm tra lại giao dịch nếu cần)'}
+        </div>
+        <Button className="w-full" onClick={confirm}>Xác nhận đối soát (khóa cleared)</Button>
       </div>
-      <button onClick={confirm} style={{ marginTop: 12, width: '100%', background: '#2b6cb0', color: '#fff', border: 0, borderRadius: 8, padding: '9px' }}>Xác nhận đối soát (khóa cleared)</button>
     </Modal>
   );
 }

@@ -1,6 +1,7 @@
 import { useBudget } from '../budget/useBudget';
 import { balances } from './ledgerBalances';
 import { formatVnd } from '../budget/format';
+import { Button } from '@/components/ui/button';
 
 export function BalanceHeader({ accountId, onReconcile }: { accountId: string; onReconcile: () => void }) {
   const { accounts, transactions, accountName } = useBudget();
@@ -15,22 +16,26 @@ export function BalanceHeader({ accountId, onReconcile }: { accountId: string; o
   })();
 
   const cell = (lab: string, v: number, color: string) => (
-    <div style={{ flex: 1, padding: '8px 10px', textAlign: 'center' }}>
-      <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase' }}>{lab}</div>
-      <div style={{ fontWeight: 700, color }}>{formatVnd(v)}₫</div>
+    <div className="flex-1 px-2.5 py-2 text-center">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{lab}</div>
+      <div className={`font-bold tabular-nums ${color}`}>{formatVnd(v)}₫</div>
     </div>
   );
-  const op = (s: string) => <div style={{ alignSelf: 'center', color: '#bbb', padding: '0 4px' }}>{s}</div>;
+  const op = (s: string) => <div className="self-center px-1 text-muted-foreground/60">{s}</div>;
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <div><span style={{ fontWeight: 700, fontSize: 15 }}>{title}</span>
-          <span style={{ fontSize: 11, color: '#999', marginLeft: 8 }}>{recLabel}</span></div>
-        {accountId !== 'all' && <button onClick={onReconcile} style={{ background: '#2b6cb0', color: '#fff', border: 0, borderRadius: 8, padding: '6px 12px', fontSize: 12 }}>⚖ Đối soát</button>}
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex flex-wrap items-baseline gap-2">
+          <span className="text-[15px] font-bold">{title}</span>
+          <span className="text-[11px] text-muted-foreground">{recLabel}</span>
+        </div>
+        {accountId !== 'all' && <Button size="sm" variant="secondary" onClick={onReconcile}>⚖ Đối soát</Button>}
       </div>
-      <div style={{ display: 'flex', border: '1px solid #eee', borderRadius: 8, marginBottom: 10 }}>
-        {cell('Cleared', b.cleared, '#333')}{op('＋')}{cell('Uncleared', b.uncleared, '#caa007')}{op('＝')}{cell('Working', b.working, '#1f9d55')}
+      <div className="mb-2.5 flex rounded-lg border bg-card">
+        {cell('Cleared', b.cleared, 'text-foreground')}{op('＋')}
+        {cell('Uncleared', b.uncleared, 'text-status-amber')}{op('＝')}
+        {cell('Working', b.working, 'text-status-green')}
       </div>
     </div>
   );
