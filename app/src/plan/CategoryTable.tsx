@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useBudget } from '../budget/useBudget';
 import { AvailableBar } from './AvailableBar';
 import { formatVnd, parseVnd } from '../budget/format';
+import { Input } from '@/components/ui/input';
 import type { PlanRow } from '../engine';
 
 function AssignedCell({ row }: { row: PlanRow }) {
@@ -11,22 +12,20 @@ function AssignedCell({ row }: { row: PlanRow }) {
 
   if (editing) {
     return (
-      <input
+      <Input
         autoFocus value={text}
         onChange={(e) => setText(e.target.value)}
         onBlur={async () => { setEditing(false); await setAssigned(row.categoryId, parseVnd(text)); }}
         onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-        style={{ width: 90, textAlign: 'right' }}
+        className="h-7 w-24 text-right"
       />
     );
   }
   return (
-    <span
-      onClick={() => { setText(String(row.assigned)); setEditing(true); }}
-      style={{ color: '#2b6cb0', borderBottom: '1px dashed #b9c9da', cursor: 'text' }}
-    >
+    <button onClick={() => { setText(String(row.assigned)); setEditing(true); }}
+      className="cursor-text border-b border-dashed border-primary/40 text-primary tabular-nums">
       {formatVnd(row.assigned)}
-    </span>
+    </button>
   );
 }
 
@@ -44,48 +43,42 @@ export function CategoryTable({ visibleRows, onMoveMoney, onEditTarget }: Props)
     (byGroup.get(g) ?? byGroup.set(g, []).get(g)!).push(r);
   }
 
-  const cell: React.CSSProperties = { padding: '8px 12px', borderBottom: '1px solid #f0f0f0', textAlign: 'right' };
-  const head: React.CSSProperties = { padding: '8px 12px', fontSize: 11, color: '#888', textAlign: 'right', borderBottom: '1px solid #eee' };
-
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', border: '1px solid #e3e3e6', borderRadius: 10 }}>
-      <thead>
-        <tr>
-          <th style={{ ...head, textAlign: 'left' }}>Category</th>
-          <th style={head}>Assigned</th><th style={head}>Activity</th><th style={head}>Available</th>
-        </tr>
-      </thead>
-      <tbody>
-        {groups.filter((g) => !g.isSystem).map((g) => {
-          const rows = byGroup.get(g.id) ?? [];
-          if (rows.length === 0) return null;
-          return (
-            <tr key={g.id}><td colSpan={4} style={{ padding: 0 }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <tbody>
-                  <tr><td colSpan={4} style={{ background: '#f4f4f6', fontWeight: 600, color: '#444', padding: '7px 12px' }}>{g.name}</td></tr>
-                  {rows.map((r) => (
-                    <tr key={r.categoryId}>
-                      <td style={{ ...cell, textAlign: 'left' }}>
-                        {categoryName(r.categoryId)}
-                        <button onClick={() => onEditTarget(r.categoryId)} title="Mục tiêu"
-                          style={{ marginLeft: 6, border: 0, background: 'none', cursor: 'pointer', opacity: 0.6 }}>🎯</button>
-                      </td>
-                      <td style={cell}><AssignedCell row={r} /></td>
-                      <td style={cell}>{formatVnd(r.activity)}</td>
-                      <td style={cell}>
-                        <span onClick={() => onMoveMoney(r.categoryId)} title="Chuyển tiền" style={{ cursor: 'pointer' }}>
-                          <AvailableBar row={r} />
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </td></tr>
-          );
-        })}
-      </tbody>
-    </table>
+    <div className="overflow-hidden rounded-xl border bg-card">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b text-xs uppercase text-muted-foreground">
+            <th className="px-3 py-2 text-left font-medium">Category</th>
+            <th className="px-3 py-2 text-right font-medium">Assigned</th>
+            <th className="px-3 py-2 text-right font-medium">Activity</th>
+            <th className="px-3 py-2 text-right font-medium">Available</th>
+          </tr>
+        </thead>
+        <tbody>
+          {groups.filter((g) => !g.isSystem).map((g) => {
+            const rows = byGroup.get(g.id) ?? [];
+            if (rows.length === 0) return null;
+            return (
+              <Fragment key={g.id}>
+                <tr><td colSpan={4} className="bg-muted/60 px-3 py-1.5 font-semibold text-foreground/80">{g.name}</td></tr>
+                {rows.map((r) => (
+                  <tr key={r.categoryId} className="border-b last:border-0">
+                    <td className="px-3 py-2 text-left">
+                      {categoryName(r.categoryId)}
+                      <button onClick={() => onEditTarget(r.categoryId)} title="Mục tiêu" className="ml-1.5 opacity-60 hover:opacity-100">🎯</button>
+                    </td>
+                    <td className="px-3 py-2 text-right"><AssignedCell row={r} /></td>
+                    <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{formatVnd(r.activity)}</td>
+                    <td className="px-3 py-2 text-right">
+                      <button onClick={() => onMoveMoney(r.categoryId)} title="Chuyển tiền" className="cursor-pointer"><AvailableBar row={r} /></button>
+                    </td>
+                  </tr>
+                ))}
+              </Fragment>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
