@@ -25,7 +25,7 @@ export default function App() {
       .limit(1)
       .maybeSingle();
     setBudget(
-      data ? { budget_id: data.budget_id, budget_name: (data.budgets as { name: string }).name } : null,
+      data ? { budget_id: data.budget_id, budget_name: (data.budgets as unknown as { name: string }).name } : null,
     );
     setChecking(false);
   }, []);
