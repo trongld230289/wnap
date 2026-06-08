@@ -1,13 +1,14 @@
 import { useBudget } from '../budget/useBudget';
 import { formatVnd } from '../budget/format';
+import { cn } from '@/lib/utils';
 
 export function RtaHeader({ onAssign }: { onAssign: () => void }) {
   const { rta } = useBudget();
-  const bg = rta < 0 ? '#d23b3b' : rta === 0 ? '#9aa0a6' : '#1f9d55';
+  const tone = rta < 0 ? 'bg-status-red' : rta === 0 ? 'bg-status-gray' : 'bg-primary';
   return (
-    <span style={{ background: bg, color: '#fff', padding: '8px 14px', borderRadius: 999, fontWeight: 600 }}>
-      Ready to Assign: {formatVnd(rta)}₫
-      <button onClick={onAssign} style={{ marginLeft: 10, background: 'rgba(255,255,255,.25)', color: '#fff', border: 0, borderRadius: 6, padding: '3px 9px', cursor: 'pointer' }}>＋ Assign</button>
-    </span>
+    <div className={cn('flex items-center gap-3 rounded-full px-4 py-2 text-primary-foreground shadow-sm', tone)}>
+      <span className="font-semibold">Sẵn sàng phân bổ: <span className="tabular-nums">{formatVnd(rta)}₫</span></span>
+      <button onClick={onAssign} className="rounded-md bg-white/20 px-2 py-0.5 text-sm font-medium hover:bg-white/30">＋ Assign</button>
+    </div>
   );
 }
