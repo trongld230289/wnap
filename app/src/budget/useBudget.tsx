@@ -1,9 +1,18 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { computeThrough, buildPlanRows, monthOf } from '../engine';
-import type { Month, PlanRow } from '../engine';
+import type { Month, PlanRow, Proposal, MonthSummary, TargetStrategy, TargetCadence } from '../engine';
 import { toBudgetInput, deriveFirstMonth } from '../lib/mappers';
 import type { RawBudgetData } from '../lib/mappers';
+
+export interface TargetInput {
+  strategy: TargetStrategy;
+  amount: number;
+  cadence: TargetCadence;
+  dueDay: number | null;
+  dueWeekday: number | null;
+  dueDate: string | null;
+}
 
 interface BudgetCtx {
   loading: boolean;
@@ -11,7 +20,8 @@ interface BudgetCtx {
   setViewMonth: (m: Month) => void;
   rows: PlanRow[];
   rta: number;
-  /** danh sách (groupId, groupName) theo sort_order, để render nhóm */
+  summaries: Map<Month, MonthSummary>;
+  firstMonth: Month;
   groups: { id: string; name: string; isSystem: boolean }[];
   categoryName: (id: string) => string;
   groupIdOf: (categoryId: string) => string;
@@ -19,6 +29,11 @@ interface BudgetCtx {
   setAssigned: (categoryId: string, amount: number) => Promise<void>;
   addGroup: (name: string) => Promise<void>;
   addCategory: (groupId: string, name: string, kind: string) => Promise<void>;
+  setTarget: (categoryId: string, t: TargetInput) => Promise<void>;
+  removeTarget: (categoryId: string) => Promise<void>;
+  setSnooze: (categoryId: string, snoozed: boolean) => Promise<void>;
+  moveMoney: (fromId: string, toId: string, amount: number) => Promise<void>;
+  applyProposals: (proposals: Proposal[]) => Promise<void>;
 }
 
 const Ctx = createContext<BudgetCtx | null>(null);
@@ -59,14 +74,16 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
 
   useEffect(() => { refetch(); }, [refetch]);
 
-  const { rows, rta } = useMemo(() => {
-    // firstMonth phải ≤ viewMonth để computeThrough luôn phủ viewMonth; nếu xem
-    // tháng trước cả tháng dữ liệu sớm nhất, kẹp về viewMonth (tránh Map rỗng → buildPlanRows throw).
+  const { rows, rta, summaries, firstMonth } = useMemo(() => {
     const dataFirst = deriveFirstMonth(raw, viewMonth);
     const firstMonth = viewMonth < dataFirst ? viewMonth : dataFirst;
     const input = toBudgetInput(raw, firstMonth);
     const summaries = computeThrough(input, viewMonth);
-    return { rows: buildPlanRows(input, summaries, viewMonth), rta: summaries.get(viewMonth)?.rta ?? 0 };
+    return {
+      rows: buildPlanRows(input, summaries, viewMonth),
+      rta: summaries.get(viewMonth)?.rta ?? 0,
+      summaries, firstMonth,
+    };
   }, [raw, viewMonth]);
 
   const nameById = useMemo(() => new Map(raw.categories.map((c) => [c.id, c.name])), [raw]);
@@ -90,11 +107,64 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
     await refetch();
   }, [budgetId, refetch]);
 
+  const setTarget = useCallback(async (categoryId: string, t: TargetInput) => {
+    await supabase.from('targets').upsert(
+      {
+        budget_id: budgetId, category_id: categoryId,
+        strategy: t.strategy, amount: t.amount, cadence: t.cadence,
+        due_day: t.dueDay, due_weekday: t.dueWeekday, due_date: t.dueDate,
+      },
+      { onConflict: 'category_id' },
+    );
+    await refetch();
+  }, [budgetId, refetch]);
+
+  const removeTarget = useCallback(async (categoryId: string) => {
+    await supabase.from('targets').delete().eq('budget_id', budgetId).eq('category_id', categoryId);
+    await refetch();
+  }, [budgetId, refetch]);
+
+  const setSnooze = useCallback(async (categoryId: string, snoozed: boolean) => {
+    if (snoozed) {
+      await supabase.from('target_snoozes').upsert(
+        { budget_id: budgetId, category_id: categoryId, month: viewMonth },
+        { onConflict: 'category_id,month', ignoreDuplicates: true },
+      );
+    } else {
+      await supabase.from('target_snoozes').delete()
+        .eq('category_id', categoryId).eq('month', viewMonth);
+    }
+    await refetch();
+  }, [budgetId, viewMonth, refetch]);
+
+  const moveMoney = useCallback(async (fromId: string, toId: string, amount: number) => {
+    const assignedNow = (id: string) =>
+      raw.assignments.find((a) => a.category_id === id && a.month === viewMonth)?.assigned ?? 0;
+    await supabase.from('assignments').upsert(
+      [
+        { budget_id: budgetId, category_id: fromId, month: viewMonth, assigned: assignedNow(fromId) - amount },
+        { budget_id: budgetId, category_id: toId, month: viewMonth, assigned: assignedNow(toId) + amount },
+      ],
+      { onConflict: 'category_id,month' },
+    );
+    await refetch();
+  }, [budgetId, viewMonth, raw, refetch]);
+
+  const applyProposals = useCallback(async (proposals: Proposal[]) => {
+    if (proposals.length === 0) return;
+    await supabase.from('assignments').upsert(
+      proposals.map((p) => ({ budget_id: budgetId, category_id: p.categoryId, month: viewMonth, assigned: p.newAssigned })),
+      { onConflict: 'category_id,month' },
+    );
+    await refetch();
+  }, [budgetId, viewMonth, refetch]);
+
   const value: BudgetCtx = {
-    loading, viewMonth, setViewMonth, rows, rta, groups,
+    loading, viewMonth, setViewMonth, rows, rta, summaries, firstMonth, groups,
     categoryName: (id) => nameById.get(id) ?? id,
     groupIdOf: (id) => groupById.get(id) ?? '',
     refetch, setAssigned, addGroup, addCategory,
+    setTarget, removeTarget, setSnooze, moveMoney, applyProposals,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
