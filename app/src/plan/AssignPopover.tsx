@@ -64,7 +64,7 @@ export function AssignPopover({ onClose }: { onClose: () => void }) {
               {rows.map((r) => <SelectItem key={r.categoryId} value={r.categoryId}>{categoryName(r.categoryId)}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Input value={manualAmt} onChange={(e) => setManualAmt(e.target.value)} placeholder="Cộng thêm vào Assigned (vd 500.000)" />
+          <Input inputMode="numeric" value={manualAmt} onChange={(e) => setManualAmt(e.target.value)} placeholder="Cộng thêm vào Assigned (vd 500.000)" />
           <Button className="w-full" onClick={applyManual}>Phân bổ</Button>
         </div>
       )}

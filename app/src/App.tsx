@@ -43,10 +43,10 @@ export default function App() {
   return (
     <BudgetProvider budgetId={budget.budget_id}>
       <DelightProvider>
-        <header className="mx-auto flex max-w-[980px] items-center justify-between px-3 pt-3">
+        <header className="mx-auto flex max-w-[980px] flex-wrap items-center justify-between gap-2 px-3 pt-3">
           <span className="text-lg font-bold text-primary">WNAP</span>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">{budget.budget_name}</span>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="hidden text-sm text-muted-foreground sm:inline">{budget.budget_name}</span>
             <MotionToggle />
             <Button variant="ghost" size="sm" onClick={() => supabase.auth.signOut()}>Đăng xuất</Button>
           </div>

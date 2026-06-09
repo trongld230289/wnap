@@ -30,7 +30,7 @@ export function AccountSidebar({ selected, onSelect }: { selected: string; onSel
   const grpLabel = (s: string) => <div className="mb-1 mt-3 px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{s}</div>;
 
   return (
-    <div className="w-full shrink-0 border-b bg-muted/40 p-2.5 text-[13px] md:w-48 md:border-b-0 md:border-r">
+    <div className="w-full shrink-0 border-b bg-muted/40 p-2.5 text-[13px] sm:w-48 sm:border-b-0 sm:border-r">
       {item('all', 'Tất cả tài khoản', g.total)}
       {g.cash.length > 0 && grpLabel('Tiền mặt')}
       {g.cash.map((a) => item(a.id, a.name, a.working))}

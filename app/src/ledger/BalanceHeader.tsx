@@ -16,9 +16,9 @@ export function BalanceHeader({ accountId, onReconcile }: { accountId: string; o
   })();
 
   const cell = (lab: string, v: number, color: string) => (
-    <div className="flex-1 px-2.5 py-2 text-center">
+    <div className="flex-1 px-1 py-2 text-center sm:px-2.5">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{lab}</div>
-      <div className={`font-bold tabular-nums ${color}`}>{formatVnd(v)}₫</div>
+      <div className={`text-xs font-bold tabular-nums sm:text-base ${color}`}>{formatVnd(v)}₫</div>
     </div>
   );
   const op = (s: string) => <div className="self-center px-1 text-muted-foreground/60">{s}</div>;
