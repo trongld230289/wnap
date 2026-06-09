@@ -100,15 +100,16 @@ function TransactionCard({ t, label, category, onToggle, onEdit, onDelete }: {
           <span className={t.categoryId ? 'text-accent-foreground' : ''}>{category}</span>
           <button
             onClick={onToggle}
-            className={cn('rounded px-1', t.status === 'uncleared' ? 'text-muted-foreground/50' : 'text-status-green')}
+            aria-label="Đổi trạng thái"
+            className={cn('rounded p-2 -m-1 leading-none', t.status === 'uncleared' ? 'text-muted-foreground/50' : 'text-status-green')}
             title="Đổi trạng thái"
           >
             {STATUS_ICON[t.status]}
           </button>
         </span>
         <span className="shrink-0 whitespace-nowrap">
-          {!t.transferId && <button onClick={onEdit} title="Sửa" className="px-1 opacity-70 hover:opacity-100">✏️</button>}
-          <button onClick={onDelete} title="Xóa" className="px-1 opacity-70 hover:opacity-100">🗑️</button>
+          {!t.transferId && <button onClick={onEdit} aria-label="Sửa" title="Sửa" className="px-1 opacity-70 hover:opacity-100">✏️</button>}
+          <button onClick={onDelete} aria-label="Xóa" title="Xóa" className="px-1 opacity-70 hover:opacity-100">🗑️</button>
         </span>
       </div>
     </li>
