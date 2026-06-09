@@ -41,8 +41,8 @@ export function TransactionForm({ accountId, editing, onDone }: { accountId: str
         </SelectContent>
       </Select>
       <Input className="h-8 w-32" placeholder="Memo" value={memo} onChange={(e) => setMemo(e.target.value)} />
-      <Input className="h-8 w-24 text-right tabular-nums" placeholder="Outflow" value={outflow} onChange={(e) => setOutflow(e.target.value)} />
-      <Input className="h-8 w-24 text-right tabular-nums" placeholder="Inflow" value={inflow} onChange={(e) => setInflow(e.target.value)} />
+      <Input inputMode="numeric" className="h-8 w-24 text-right tabular-nums" placeholder="Outflow" value={outflow} onChange={(e) => setOutflow(e.target.value)} />
+      <Input inputMode="numeric" className="h-8 w-24 text-right tabular-nums" placeholder="Inflow" value={inflow} onChange={(e) => setInflow(e.target.value)} />
       <Button size="sm" onClick={save}>{editing ? 'Cập nhật' : 'Lưu'}</Button>
       <Button size="sm" variant="ghost" onClick={onDone}>Hủy</Button>
     </div>

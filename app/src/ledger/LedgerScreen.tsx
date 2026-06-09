@@ -34,7 +34,7 @@ export function LedgerScreen() {
 
   return (
     <div className="mx-auto my-3 max-w-5xl px-3">
-      <div className="flex flex-col overflow-hidden rounded-xl border bg-card md:flex-row">
+      <div className="flex flex-col overflow-hidden rounded-xl border bg-card sm:flex-row">
         <AccountSidebar selected={selected} onSelect={(id) => { setSelected(id); reset(); }} />
         <div className="flex-1 p-4">
           <BalanceHeader accountId={selected} onReconcile={() => setModal('reconcile')} />
