@@ -50,7 +50,7 @@ export function TargetEditorModal({ categoryId, onClose }: { categoryId: string;
           </Select>
         </div>
         <div><Label className={lbl}>Số tiền</Label>
-          <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="vd 600.000" />
+          <Input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="vd 600.000" />
         </div>
         <div><Label className={lbl}>Chu kỳ</Label>
           <Select value={cadence} onValueChange={(v) => setCadence(v as TargetCadence)}>

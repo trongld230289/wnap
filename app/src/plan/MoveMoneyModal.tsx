@@ -40,7 +40,7 @@ export function MoveMoneyModal({ fromId, onClose }: { fromId: string; onClose: (
         </div>
         <div>
           <Label className="text-xs text-muted-foreground">Số tiền</Label>
-          <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="vd 200.000" />
+          <Input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="vd 200.000" />
         </div>
         <Button className="w-full" onClick={move}>Chuyển</Button>
       </div>
