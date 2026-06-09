@@ -50,7 +50,7 @@ export function PlanScreen() {
       <div className="mb-3">
         <FilterCards active={active} onToggle={(id) => setActive(active === id ? null : id)} />
       </div>
-      <div className="mb-2 flex gap-2">
+      <div className="mb-2 flex flex-wrap gap-2">
         <Button variant="outline" size="sm" onClick={onAddGroup}>＋ Nhóm</Button>
         <Button variant="outline" size="sm" onClick={onAddCategory}>＋ Category</Button>
         <Button variant="outline" size="sm" onClick={() => setShowActivity(true)}>📋 Hoạt động</Button>
