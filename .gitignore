@@ -4,3 +4,6 @@
 
 # Superpowers brainstorm artifacts
 .superpowers/
+
+# Loose screenshots in repo root (test/debug captures)
+/*.png
