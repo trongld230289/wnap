@@ -1,18 +1,20 @@
 import { useBudget } from '../budget/useBudget';
 import { balances } from './ledgerBalances';
 import { formatVnd } from '../budget/format';
+import { useI18n } from '../i18n/useI18n';
 import { Button } from '@/components/ui/button';
 
 export function BalanceHeader({ accountId, onReconcile }: { accountId: string; onReconcile: () => void }) {
   const { accounts, transactions, accountName } = useBudget();
-  const txns = accountId === 'all' ? transactions : transactions.filter((t) => t.accountId === accountId);
+  const { t } = useI18n();
+  const txns = accountId === 'all' ? transactions : transactions.filter((tx) => tx.accountId === accountId);
   const b = balances(txns);
-  const title = accountId === 'all' ? 'Tất cả tài khoản' : accountName(accountId);
+  const title = accountId === 'all' ? t('acct.all') : accountName(accountId);
   const acc = accounts.find((a) => a.id === accountId);
   const recLabel = (() => {
-    if (accountId === 'all' || !acc?.reconciledAt) return 'Chưa đối soát';
+    if (accountId === 'all' || !acc?.reconciledAt) return t('balance.notReconciled');
     const days = Math.floor((Date.now() - new Date(acc.reconciledAt).getTime()) / 86_400_000);
-    return `Đối soát ${days} ngày trước`;
+    return t('balance.reconciledAgo', { days });
   })();
 
   const cell = (lab: string, v: number, color: string) => (
@@ -30,12 +32,12 @@ export function BalanceHeader({ accountId, onReconcile }: { accountId: string; o
           <span className="text-[15px] font-bold">{title}</span>
           <span className="text-[11px] text-muted-foreground">{recLabel}</span>
         </div>
-        {accountId !== 'all' && <Button size="sm" variant="secondary" onClick={onReconcile}>⚖ Đối soát</Button>}
+        {accountId !== 'all' && <Button size="sm" variant="secondary" onClick={onReconcile}>{t('balance.reconcile')}</Button>}
       </div>
       <div className="mb-2.5 flex rounded-lg border bg-card">
-        {cell('Cleared', b.cleared, 'text-foreground')}{op('＋')}
-        {cell('Uncleared', b.uncleared, 'text-status-amber')}{op('＝')}
-        {cell('Working', b.working, 'text-status-green')}
+        {cell(t('balance.cleared'), b.cleared, 'text-foreground')}{op('＋')}
+        {cell(t('balance.uncleared'), b.uncleared, 'text-status-amber')}{op('＝')}
+        {cell(t('balance.working'), b.working, 'text-status-green')}
       </div>
     </div>
   );

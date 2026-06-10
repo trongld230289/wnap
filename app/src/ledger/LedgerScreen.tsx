@@ -8,43 +8,45 @@ import { ReconcileModal } from './ReconcileModal';
 import { TransferForm } from './TransferForm';
 import { Button } from '@/components/ui/button';
 import { useDialogs } from '../components/feedback/DialogProvider';
+import { useI18n } from '../i18n/useI18n';
 import type { LedgerTxn } from '../lib/mappers';
 
 export function LedgerScreen() {
   const { loading, accounts, transactions, deleteTransaction } = useBudget();
   const { confirm } = useDialogs();
+  const { t } = useI18n();
   const [selected, setSelected] = useState<string>('all');
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<LedgerTxn | null>(null);
   const [modal, setModal] = useState<'reconcile' | 'transfer' | null>(null);
 
-  if (loading) return <p className="m-10 text-sm text-muted-foreground">Đang tải sổ giao dịch…</p>;
+  if (loading) return <p className="m-10 text-sm text-muted-foreground">{t('ledger.loading')}</p>;
 
   const txns = selected === 'all' ? transactions : transactions.filter((t) => t.accountId === selected);
   const canAdd = selected !== 'all';
 
   function reset() { setAdding(false); setEditing(null); }
-  async function onEdit(t: LedgerTxn) {
-    if (t.status === 'reconciled' && !(await confirm({
-      title: 'Giao dịch đã đối soát',
-      description: 'Sửa có thể làm lệch số dư ngân hàng. Tiếp tục?',
-      confirmText: 'Vẫn sửa',
+  async function onEdit(txn: LedgerTxn) {
+    if (txn.status === 'reconciled' && !(await confirm({
+      title: t('ledger.confirmEditTitle'),
+      description: t('ledger.confirmEditDesc'),
+      confirmText: t('ledger.confirmEditOk'),
     }))) return;
-    setAdding(false); setEditing(t);
+    setAdding(false); setEditing(txn);
   }
-  async function onDelete(t: LedgerTxn) {
-    if (t.status === 'reconciled' && !(await confirm({
-      title: 'Giao dịch đã đối soát',
-      description: 'Xóa có thể làm lệch số dư. Tiếp tục?',
-      confirmText: 'Vẫn xóa',
+  async function onDelete(txn: LedgerTxn) {
+    if (txn.status === 'reconciled' && !(await confirm({
+      title: t('ledger.confirmEditTitle'),
+      description: t('ledger.confirmDelDesc'),
+      confirmText: t('ledger.confirmDelOk'),
       destructive: true,
     }))) return;
     if (!(await confirm({
-      title: 'Xóa giao dịch này?',
-      confirmText: 'Xóa',
+      title: t('ledger.confirmDelTitle'),
+      confirmText: t('ledger.delete'),
       destructive: true,
     }))) return;
-    await deleteTransaction(t.id);
+    await deleteTransaction(txn.id);
   }
 
   return (
@@ -56,12 +58,12 @@ export function LedgerScreen() {
           <div className="mb-2 flex flex-wrap items-center gap-2">
             {canAdd ? (
               <>
-                <Button size="sm" onClick={() => { setEditing(null); setAdding(true); }} disabled={adding}>＋ Thêm giao dịch</Button>
-                <Button size="sm" variant="outline" onClick={() => setModal('transfer')}>⇄ Chuyển khoản</Button>
+                <Button size="sm" onClick={() => { setEditing(null); setAdding(true); }} disabled={adding}>{t('ledger.addTxn')}</Button>
+                <Button size="sm" variant="outline" onClick={() => setModal('transfer')}>{t('ledger.transfer')}</Button>
               </>
             ) : (
               <span className="text-xs text-muted-foreground">
-                Chọn 1 tài khoản để thêm giao dịch{accounts.length === 0 ? ' (tạo tài khoản trước)' : ''}
+                {accounts.length === 0 ? t('ledger.pickAccountEmpty') : t('ledger.pickAccount')}
               </span>
             )}
           </div>

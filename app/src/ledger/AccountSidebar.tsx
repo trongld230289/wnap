@@ -3,9 +3,11 @@ import { groupAccounts } from './ledgerGroups';
 import { formatVnd } from '../budget/format';
 import { cn } from '@/lib/utils';
 import { AddAccountDialog } from './AddAccountDialog';
+import { useI18n } from '../i18n/useI18n';
 
 export function AccountSidebar({ selected, onSelect }: { selected: string; onSelect: (id: string) => void }) {
   const { accounts, transactions } = useBudget();
+  const { t } = useI18n();
   const g = groupAccounts(accounts, transactions);
 
   const item = (id: string, name: string, working: number) => (
@@ -25,10 +27,10 @@ export function AccountSidebar({ selected, onSelect }: { selected: string; onSel
 
   return (
     <div className="w-full shrink-0 border-b bg-muted/40 p-2.5 text-[13px] sm:w-48 sm:border-b-0 sm:border-r">
-      {item('all', 'Tất cả tài khoản', g.total)}
-      {g.cash.length > 0 && grpLabel('Tiền mặt')}
+      {item('all', t('acct.all'), g.total)}
+      {g.cash.length > 0 && grpLabel(t('acct.cash'))}
       {g.cash.map((a) => item(a.id, a.name, a.working))}
-      {g.savings.length > 0 && grpLabel('Tiết kiệm')}
+      {g.savings.length > 0 && grpLabel(t('acct.savings'))}
       {g.savings.map((a) => item(a.id, a.name, a.working))}
       <AddAccountDialog />
     </div>

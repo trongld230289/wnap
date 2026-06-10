@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useI18n } from '../i18n/useI18n';
 
 export function AddAccountDialog() {
   const { addAccount } = useBudget();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [type, setType] = useState<AccountType>('cash');
@@ -22,7 +24,7 @@ export function AddAccountDialog() {
   }
 
   async function save() {
-    if (!name.trim()) { setError('Nhập tên tài khoản'); return; }
+    if (!name.trim()) { setError(t('acct.errName')); return; }
     await addAccount(name.trim(), type);
     setOpen(false);
   }
@@ -30,37 +32,37 @@ export function AddAccountDialog() {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <button className="mt-3 px-2 text-sm text-primary hover:underline">＋ Thêm tài khoản</button>
+        <button className="mt-3 px-2 text-sm text-primary hover:underline">{t('acct.add')}</button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Thêm tài khoản</DialogTitle>
+          <DialogTitle>{t('acct.addTitle')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); save(); }} className="space-y-3">
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Tên tài khoản</Label>
+            <Label className="text-xs text-muted-foreground">{t('acct.name')}</Label>
             <Input
               autoFocus
               value={name}
               onChange={(e) => { setName(e.target.value); setError(''); }}
-              placeholder="vd Ví tiền mặt, Vietcombank"
+              placeholder={t('acct.namePlaceholder')}
             />
             {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Loại</Label>
+            <Label className="text-xs text-muted-foreground">{t('acct.type')}</Label>
             <Select value={type} onValueChange={(v) => setType(v as AccountType)}>
               <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="cash">Tiền mặt (Cash)</SelectItem>
-                <SelectItem value="savings">Tiết kiệm (Savings)</SelectItem>
+                <SelectItem value="cash">{t('acct.typeCash')}</SelectItem>
+                <SelectItem value="savings">{t('acct.typeSavings')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </form>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
-          <Button onClick={save}>Thêm</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>{t('common.cancel')}</Button>
+          <Button onClick={save}>{t('common.add')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

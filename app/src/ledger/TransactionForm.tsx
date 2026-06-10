@@ -4,10 +4,12 @@ import { parseVnd, formatVnd } from '../budget/format';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useI18n } from '../i18n/useI18n';
 import type { LedgerTxn } from '../lib/mappers';
 
 export function TransactionForm({ accountId, editing, onDone }: { accountId: string; editing: LedgerTxn | null; onDone: () => void }) {
   const { allCategories, payees, upsertPayee, addTransaction, updateTransaction } = useBudget();
+  const { t } = useI18n();
   const today = new Date().toISOString().slice(0, 10);
   const payeeName0 = editing?.payeeId ? payees.find((p) => p.id === editing.payeeId)?.name ?? '' : '';
   const [date, setDate] = useState(editing?.date ?? today);
@@ -22,7 +24,7 @@ export function TransactionForm({ accountId, editing, onDone }: { accountId: str
     const out = parseVnd(outflow);
     const inn = parseVnd(inflow);
     const amount = inn > 0 ? inn : -out;
-    if (amount === 0) { setError('Nhập Outflow hoặc Inflow'); return; }
+    if (amount === 0) { setError(t('txn.errAmount')); return; }
     const payeeId = payee.trim() ? await upsertPayee(payee) : null;
     const patch = { date, payeeId, categoryId: categoryId || null, memo: memo.trim() || null, amount };
     if (editing) await updateTransaction(editing.id, patch);
@@ -33,19 +35,19 @@ export function TransactionForm({ accountId, editing, onDone }: { accountId: str
   return (
     <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border bg-accent/40 p-2.5">
       <Input className="h-8 w-32" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      <Input className="h-8 w-36" placeholder="Payee" list="payee-list" value={payee} onChange={(e) => setPayee(e.target.value)} />
+      <Input className="h-8 w-36" placeholder={t('txn.payee')} list="payee-list" value={payee} onChange={(e) => setPayee(e.target.value)} />
       <datalist id="payee-list">{payees.map((p) => <option key={p.id} value={p.name} />)}</datalist>
       <Select value={categoryId} onValueChange={setCategoryId}>
-        <SelectTrigger className="h-8 w-44" size="sm"><SelectValue placeholder="— Chọn category —" /></SelectTrigger>
+        <SelectTrigger className="h-8 w-44" size="sm"><SelectValue placeholder={t('txn.pickCategory')} /></SelectTrigger>
         <SelectContent>
           {allCategories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
         </SelectContent>
       </Select>
-      <Input className="h-8 w-32" placeholder="Memo" value={memo} onChange={(e) => setMemo(e.target.value)} />
-      <Input inputMode="numeric" className="h-8 w-24 text-right tabular-nums" placeholder="Outflow" value={outflow} onChange={(e) => { setOutflow(e.target.value); setError(''); }} />
-      <Input inputMode="numeric" className="h-8 w-24 text-right tabular-nums" placeholder="Inflow" value={inflow} onChange={(e) => { setInflow(e.target.value); setError(''); }} />
-      <Button size="sm" onClick={save}>{editing ? 'Cập nhật' : 'Lưu'}</Button>
-      <Button size="sm" variant="ghost" onClick={onDone}>Hủy</Button>
+      <Input className="h-8 w-32" placeholder={t('txn.memo')} value={memo} onChange={(e) => setMemo(e.target.value)} />
+      <Input inputMode="numeric" className="h-8 w-24 text-right tabular-nums" placeholder={t('txn.colOutflow')} value={outflow} onChange={(e) => { setOutflow(e.target.value); setError(''); }} />
+      <Input inputMode="numeric" className="h-8 w-24 text-right tabular-nums" placeholder={t('txn.colInflow')} value={inflow} onChange={(e) => { setInflow(e.target.value); setError(''); }} />
+      <Button size="sm" onClick={save}>{editing ? t('txn.update') : t('common.save')}</Button>
+      <Button size="sm" variant="ghost" onClick={onDone}>{t('txn.cancel')}</Button>
       {error && <p className="w-full text-xs text-destructive">{error}</p>}
     </div>
   );
