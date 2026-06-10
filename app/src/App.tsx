@@ -8,12 +8,11 @@ import { PlanScreen } from './plan/PlanScreen';
 import { LedgerScreen } from './ledger/LedgerScreen';
 import { AppTabs } from './nav/AppTabs';
 import type { AppTab } from './nav/AppTabs';
-import { Button } from '@/components/ui/button';
-import { DelightProvider, useDelight } from './delight/useDelight';
+import { DelightProvider } from './delight/useDelight';
 import { DialogProvider } from './components/feedback/DialogProvider';
-import { InviteButton } from './budget/InviteButton';
+import { UserMenu } from './budget/UserMenu';
 
-interface Membership { budget_id: string; budget_name: string; }
+interface Membership { budget_id: string; budget_name: string; display_name: string; }
 
 export default function App() {
   const { session, loading } = useSession();
@@ -22,17 +21,25 @@ export default function App() {
   const [tab, setTab] = useState<AppTab>('plan');
 
   const loadBudget = useCallback(async () => {
+    if (!session) return;
     setChecking(true);
     const { data } = await supabase
       .from('budget_members')
-      .select('budget_id, budgets(name)')
+      .select('budget_id, display_name, budgets(name)')
+      .eq('user_id', session.user.id)
       .limit(1)
       .maybeSingle();
     setBudget(
-      data ? { budget_id: data.budget_id, budget_name: (data.budgets as unknown as { name: string }).name } : null,
+      data
+        ? {
+            budget_id: data.budget_id,
+            budget_name: (data.budgets as unknown as { name: string }).name,
+            display_name: (data.display_name as string) ?? 'Tôi',
+          }
+        : null,
     );
     setChecking(false);
-  }, []);
+  }, [session]);
 
   useEffect(() => {
     if (session) loadBudget();
@@ -46,34 +53,18 @@ export default function App() {
     <BudgetProvider budgetId={budget.budget_id}>
       <DelightProvider>
         <DialogProvider>
-          <header className="mx-auto flex max-w-[980px] flex-wrap items-center justify-between gap-2 px-3 pt-3">
+          <header className="mx-auto flex max-w-[980px] items-center justify-between gap-2 px-3 pt-3">
             <span className="text-lg font-bold text-primary">WNAP</span>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <span className="hidden text-sm text-muted-foreground sm:inline">{budget.budget_name}</span>
-              <InviteButton budgetId={budget.budget_id} />
-              <MotionToggle />
-              <Button variant="ghost" size="sm" onClick={() => supabase.auth.signOut()}>Đăng xuất</Button>
-            </div>
+            <UserMenu
+              displayName={budget.display_name}
+              budgetName={budget.budget_name}
+              budgetId={budget.budget_id}
+            />
           </header>
           <AppTabs tab={tab} onChange={setTab} />
           {tab === 'plan' ? <PlanScreen /> : <LedgerScreen />}
         </DialogProvider>
       </DelightProvider>
     </BudgetProvider>
-  );
-}
-
-function MotionToggle() {
-  const { userEnabled, toggle } = useDelight();
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={toggle}
-      title={userEnabled ? 'Tắt hiệu ứng chuyển động' : 'Bật hiệu ứng chuyển động'}
-      aria-pressed={userEnabled}
-    >
-      {userEnabled ? '✨ Hiệu ứng: Bật' : 'Hiệu ứng: Tắt'}
-    </Button>
   );
 }

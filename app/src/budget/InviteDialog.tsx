@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import { CheckIcon, CopyIcon, UserPlusIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { CheckIcon, CopyIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
-export function InviteButton({ budgetId }: { budgetId: string }) {
-  const [open, setOpen] = useState(false);
+export function InviteDialog({
+  budgetId, open, onOpenChange,
+}: { budgetId: string; open: boolean; onOpenChange: (o: boolean) => void }) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,10 +24,11 @@ export function InviteButton({ budgetId }: { budgetId: string }) {
     else setCode(data as string);
   }
 
-  function onOpenChange(o: boolean) {
-    setOpen(o);
-    if (o) { setCode(''); generate(); }
-  }
+  // Generate a fresh code each time the dialog opens.
+  useEffect(() => {
+    if (open) { setCode(''); generate(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   async function copy() {
     try {
@@ -40,11 +42,6 @@ export function InviteButton({ budgetId }: { budgetId: string }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm">
-          <UserPlusIcon className="size-4" /> Mời
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Mời thành viên</DialogTitle>
