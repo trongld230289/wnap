@@ -18,14 +18,15 @@ export function TargetEditorModal({ categoryId, onClose }: { categoryId: string;
   const [dueDay, setDueDay] = useState(t?.dueDay != null ? String(t.dueDay) : '');
   const [dueWeekday, setDueWeekday] = useState(t?.dueWeekday != null ? String(t.dueWeekday) : '1');
   const [dueDate, setDueDate] = useState(t?.dueDate ?? '');
+  const [error, setError] = useState('');
 
   const needsDate = strategy === 'have_balance' || cadence === 'yearly' || cadence === 'custom';
   const isWeekly = cadence === 'weekly';
 
   async function save() {
     const amt = parseVnd(amount);
-    if (amt <= 0) { window.alert('Nhập số tiền > 0'); return; }
-    if (needsDate && !dueDate) { window.alert('Chọn ngày hạn (deadline)'); return; }
+    if (amt <= 0) { setError('Nhập số tiền > 0'); return; }
+    if (needsDate && !dueDate) { setError('Chọn ngày hạn (deadline)'); return; }
     await setTarget(categoryId, {
       strategy, amount: amt, cadence,
       dueDay: !needsDate && !isWeekly && dueDay ? Number(dueDay) : null,
@@ -50,7 +51,7 @@ export function TargetEditorModal({ categoryId, onClose }: { categoryId: string;
           </Select>
         </div>
         <div><Label className={lbl}>Số tiền</Label>
-          <Input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="vd 600.000" />
+          <Input inputMode="numeric" value={amount} onChange={(e) => { setAmount(e.target.value); setError(''); }} placeholder="vd 600.000" />
         </div>
         <div><Label className={lbl}>Chu kỳ</Label>
           <Select value={cadence} onValueChange={(v) => setCadence(v as TargetCadence)}>
@@ -72,9 +73,10 @@ export function TargetEditorModal({ categoryId, onClose }: { categoryId: string;
             </SelectContent>
           </Select></div>)}
         {needsDate && (<div><Label className={lbl}>Hạn (deadline)</Label>
-          <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>)}
+          <Input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); setError(''); }} /></div>)}
         {!isWeekly && !needsDate && (<div><Label className={lbl}>Ngày đến hạn trong tháng (tùy chọn, 1–31)</Label>
           <Input value={dueDay} onChange={(e) => setDueDay(e.target.value)} placeholder="vd 15" /></div>)}
+        {error && <p className="text-sm text-destructive">{error}</p>}
         <div className="flex gap-2 pt-2">
           <Button className="flex-1" onClick={save}>Lưu</Button>
           <Button variant="secondary" onClick={async () => { await setSnooze(categoryId, !row.snoozed); onClose(); }}>

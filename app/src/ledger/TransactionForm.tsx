@@ -16,12 +16,13 @@ export function TransactionForm({ accountId, editing, onDone }: { accountId: str
   const [memo, setMemo] = useState(editing?.memo ?? '');
   const [outflow, setOutflow] = useState(editing && editing.amount < 0 ? formatVnd(-editing.amount) : '');
   const [inflow, setInflow] = useState(editing && editing.amount > 0 ? formatVnd(editing.amount) : '');
+  const [error, setError] = useState('');
 
   async function save() {
     const out = parseVnd(outflow);
     const inn = parseVnd(inflow);
     const amount = inn > 0 ? inn : -out;
-    if (amount === 0) { window.alert('Nhập Outflow hoặc Inflow'); return; }
+    if (amount === 0) { setError('Nhập Outflow hoặc Inflow'); return; }
     const payeeId = payee.trim() ? await upsertPayee(payee) : null;
     const patch = { date, payeeId, categoryId: categoryId || null, memo: memo.trim() || null, amount };
     if (editing) await updateTransaction(editing.id, patch);
@@ -41,10 +42,11 @@ export function TransactionForm({ accountId, editing, onDone }: { accountId: str
         </SelectContent>
       </Select>
       <Input className="h-8 w-32" placeholder="Memo" value={memo} onChange={(e) => setMemo(e.target.value)} />
-      <Input inputMode="numeric" className="h-8 w-24 text-right tabular-nums" placeholder="Outflow" value={outflow} onChange={(e) => setOutflow(e.target.value)} />
-      <Input inputMode="numeric" className="h-8 w-24 text-right tabular-nums" placeholder="Inflow" value={inflow} onChange={(e) => setInflow(e.target.value)} />
+      <Input inputMode="numeric" className="h-8 w-24 text-right tabular-nums" placeholder="Outflow" value={outflow} onChange={(e) => { setOutflow(e.target.value); setError(''); }} />
+      <Input inputMode="numeric" className="h-8 w-24 text-right tabular-nums" placeholder="Inflow" value={inflow} onChange={(e) => { setInflow(e.target.value); setError(''); }} />
       <Button size="sm" onClick={save}>{editing ? 'Cập nhật' : 'Lưu'}</Button>
       <Button size="sm" variant="ghost" onClick={onDone}>Hủy</Button>
+      {error && <p className="w-full text-xs text-destructive">{error}</p>}
     </div>
   );
 }

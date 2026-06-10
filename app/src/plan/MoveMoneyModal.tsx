@@ -13,11 +13,12 @@ export function MoveMoneyModal({ fromId, onClose }: { fromId: string; onClose: (
   const others = rows.filter((r) => r.categoryId !== fromId);
   const [toId, setToId] = useState(others[0]?.categoryId ?? '');
   const [amount, setAmount] = useState('');
+  const [error, setError] = useState('');
 
   async function move() {
     const amt = parseVnd(amount);
-    if (amt <= 0) { window.alert('Nhập số tiền > 0'); return; }
-    if (!toId) { window.alert('Chọn category đích'); return; }
+    if (amt <= 0) { setError('Nhập số tiền > 0'); return; }
+    if (!toId) { setError('Chọn category đích'); return; }
     await moveMoney(fromId, toId, amt);
     onClose();
   }
@@ -40,8 +41,9 @@ export function MoveMoneyModal({ fromId, onClose }: { fromId: string; onClose: (
         </div>
         <div>
           <Label className="text-xs text-muted-foreground">Số tiền</Label>
-          <Input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="vd 200.000" />
+          <Input inputMode="numeric" value={amount} onChange={(e) => { setAmount(e.target.value); setError(''); }} placeholder="vd 200.000" />
         </div>
+        {error && <p className="text-sm text-destructive">{error}</p>}
         <Button className="w-full" onClick={move}>Chuyển</Button>
       </div>
     </Modal>

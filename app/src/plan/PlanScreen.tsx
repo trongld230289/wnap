@@ -11,6 +11,7 @@ import { ActivityDialog } from './ActivityDialog';
 import { PLAN_FILTERS } from '../budget/planFilters';
 import type { FilterId } from '../budget/planFilters';
 import { Button } from '@/components/ui/button';
+import { useDialogs } from '../components/feedback/DialogProvider';
 
 type ModalState =
   | { type: 'assign' }
@@ -20,6 +21,7 @@ type ModalState =
 
 export function PlanScreen() {
   const { loading, rows, groups, addGroup, addCategory } = useBudget();
+  const { prompt, notify } = useDialogs();
   const [active, setActive] = useState<FilterId | null>(null);
   const [modal, setModal] = useState<ModalState>(null);
   const [showActivity, setShowActivity] = useState(false);
@@ -31,12 +33,15 @@ export function PlanScreen() {
   const userGroups = groups.filter((g) => !g.isSystem);
 
   async function onAddGroup() {
-    const name = window.prompt('Tên nhóm mới:');
+    const name = await prompt({ title: 'Nhóm mới', label: 'Tên nhóm', placeholder: 'vd Chi phí cố định', confirmText: 'Tạo' });
     if (name) await addGroup(name);
   }
   async function onAddCategory() {
-    if (userGroups.length === 0) { window.alert('Tạo nhóm trước đã.'); return; }
-    const name = window.prompt('Tên category mới:');
+    if (userGroups.length === 0) {
+      await notify({ title: 'Chưa có nhóm', description: 'Tạo nhóm trước đã rồi mới thêm category.' });
+      return;
+    }
+    const name = await prompt({ title: 'Category mới', label: 'Tên category', placeholder: 'vd Tiền điện', confirmText: 'Tạo' });
     if (!name) return;
     await addCategory(userGroups[0].id, name, 'need');
   }

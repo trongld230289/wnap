@@ -1,16 +1,18 @@
 import { useBudget } from '../budget/useBudget';
 import { formatVnd } from '../budget/format';
 import { cn } from '@/lib/utils';
+import { useDialogs } from '../components/feedback/DialogProvider';
 import type { LedgerTxn } from '../lib/mappers';
 
 const STATUS_ICON: Record<string, string> = { uncleared: '○', cleared: 'C', reconciled: '🔒' };
 
 export function TransactionTable({ txns, onEdit, onDelete }: { txns: LedgerTxn[]; onEdit: (t: LedgerTxn) => void; onDelete: (t: LedgerTxn) => void }) {
   const { categoryName, accountName, payees, setTxStatus } = useBudget();
+  const { notify } = useDialogs();
   const payeeName = (id: string | null) => (id ? payees.find((p) => p.id === id)?.name ?? '' : '');
 
   function toggle(t: LedgerTxn) {
-    if (t.status === 'reconciled') { window.alert('Giao dịch đã đối soát (đã khóa).'); return; }
+    if (t.status === 'reconciled') { void notify({ title: 'Giao dịch đã khóa', description: 'Giao dịch đã đối soát nên không đổi trạng thái được.' }); return; }
     setTxStatus(t.id, t.status === 'uncleared' ? 'cleared' : 'uncleared');
   }
 

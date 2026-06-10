@@ -2,17 +2,11 @@ import { useBudget } from '../budget/useBudget';
 import { groupAccounts } from './ledgerGroups';
 import { formatVnd } from '../budget/format';
 import { cn } from '@/lib/utils';
+import { AddAccountDialog } from './AddAccountDialog';
 
 export function AccountSidebar({ selected, onSelect }: { selected: string; onSelect: (id: string) => void }) {
-  const { accounts, transactions, addAccount } = useBudget();
+  const { accounts, transactions } = useBudget();
   const g = groupAccounts(accounts, transactions);
-
-  async function onAdd() {
-    const name = window.prompt('Tên tài khoản mới:');
-    if (!name) return;
-    const type = window.confirm('OK = Tiết kiệm (Savings), Cancel = Tiền mặt (Cash)') ? 'savings' : 'cash';
-    await addAccount(name, type);
-  }
 
   const item = (id: string, name: string, working: number) => (
     <button
@@ -36,7 +30,7 @@ export function AccountSidebar({ selected, onSelect }: { selected: string; onSel
       {g.cash.map((a) => item(a.id, a.name, a.working))}
       {g.savings.length > 0 && grpLabel('Tiết kiệm')}
       {g.savings.map((a) => item(a.id, a.name, a.working))}
-      <button onClick={onAdd} className="mt-3 px-2 text-sm text-primary hover:underline">＋ Thêm tài khoản</button>
+      <AddAccountDialog />
     </div>
   );
 }

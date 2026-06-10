@@ -14,11 +14,12 @@ export function TransferForm({ fromId, onClose }: { fromId: string; onClose: () 
   const [toId, setToId] = useState(others[0]?.id ?? '');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(today);
+  const [error, setError] = useState('');
 
   async function go() {
     const amt = parseVnd(amount);
-    if (amt <= 0) { window.alert('Nhập số tiền > 0'); return; }
-    if (!toId) { window.alert('Chọn tài khoản đích'); return; }
+    if (amt <= 0) { setError('Nhập số tiền > 0'); return; }
+    if (!toId) { setError('Chọn tài khoản đích'); return; }
     await addTransfer(fromId, toId, amt, date);
     onClose();
   }
@@ -41,12 +42,13 @@ export function TransferForm({ fromId, onClose }: { fromId: string; onClose: () 
         </div>
         <div>
           <Label className="text-xs text-muted-foreground">Số tiền</Label>
-          <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="vd 2.000.000" className="tabular-nums" />
+          <Input value={amount} onChange={(e) => { setAmount(e.target.value); setError(''); }} placeholder="vd 2.000.000" className="tabular-nums" />
         </div>
         <div>
           <Label className="text-xs text-muted-foreground">Ngày</Label>
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
+        {error && <p className="text-sm text-destructive">{error}</p>}
         <Button className="w-full" onClick={go}>Chuyển</Button>
       </div>
     </Modal>

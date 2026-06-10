@@ -10,6 +10,8 @@ import { AppTabs } from './nav/AppTabs';
 import type { AppTab } from './nav/AppTabs';
 import { Button } from '@/components/ui/button';
 import { DelightProvider, useDelight } from './delight/useDelight';
+import { DialogProvider } from './components/feedback/DialogProvider';
+import { InviteButton } from './budget/InviteButton';
 
 interface Membership { budget_id: string; budget_name: string; }
 
@@ -43,16 +45,19 @@ export default function App() {
   return (
     <BudgetProvider budgetId={budget.budget_id}>
       <DelightProvider>
-        <header className="mx-auto flex max-w-[980px] flex-wrap items-center justify-between gap-2 px-3 pt-3">
-          <span className="text-lg font-bold text-primary">WNAP</span>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <span className="hidden text-sm text-muted-foreground sm:inline">{budget.budget_name}</span>
-            <MotionToggle />
-            <Button variant="ghost" size="sm" onClick={() => supabase.auth.signOut()}>Đăng xuất</Button>
-          </div>
-        </header>
-        <AppTabs tab={tab} onChange={setTab} />
-        {tab === 'plan' ? <PlanScreen /> : <LedgerScreen />}
+        <DialogProvider>
+          <header className="mx-auto flex max-w-[980px] flex-wrap items-center justify-between gap-2 px-3 pt-3">
+            <span className="text-lg font-bold text-primary">WNAP</span>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="hidden text-sm text-muted-foreground sm:inline">{budget.budget_name}</span>
+              <InviteButton budgetId={budget.budget_id} />
+              <MotionToggle />
+              <Button variant="ghost" size="sm" onClick={() => supabase.auth.signOut()}>Đăng xuất</Button>
+            </div>
+          </header>
+          <AppTabs tab={tab} onChange={setTab} />
+          {tab === 'plan' ? <PlanScreen /> : <LedgerScreen />}
+        </DialogProvider>
       </DelightProvider>
     </BudgetProvider>
   );

@@ -7,10 +7,12 @@ import { TransactionForm } from './TransactionForm';
 import { ReconcileModal } from './ReconcileModal';
 import { TransferForm } from './TransferForm';
 import { Button } from '@/components/ui/button';
+import { useDialogs } from '../components/feedback/DialogProvider';
 import type { LedgerTxn } from '../lib/mappers';
 
 export function LedgerScreen() {
   const { loading, accounts, transactions, deleteTransaction } = useBudget();
+  const { confirm } = useDialogs();
   const [selected, setSelected] = useState<string>('all');
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<LedgerTxn | null>(null);
@@ -22,13 +24,26 @@ export function LedgerScreen() {
   const canAdd = selected !== 'all';
 
   function reset() { setAdding(false); setEditing(null); }
-  function onEdit(t: LedgerTxn) {
-    if (t.status === 'reconciled' && !window.confirm('Giao dịch đã đối soát, sửa có thể làm lệch số dư ngân hàng. Tiếp tục?')) return;
+  async function onEdit(t: LedgerTxn) {
+    if (t.status === 'reconciled' && !(await confirm({
+      title: 'Giao dịch đã đối soát',
+      description: 'Sửa có thể làm lệch số dư ngân hàng. Tiếp tục?',
+      confirmText: 'Vẫn sửa',
+    }))) return;
     setAdding(false); setEditing(t);
   }
   async function onDelete(t: LedgerTxn) {
-    if (t.status === 'reconciled' && !window.confirm('Giao dịch đã đối soát, xóa có thể làm lệch số dư. Tiếp tục?')) return;
-    if (!window.confirm('Xóa giao dịch này?')) return;
+    if (t.status === 'reconciled' && !(await confirm({
+      title: 'Giao dịch đã đối soát',
+      description: 'Xóa có thể làm lệch số dư. Tiếp tục?',
+      confirmText: 'Vẫn xóa',
+      destructive: true,
+    }))) return;
+    if (!(await confirm({
+      title: 'Xóa giao dịch này?',
+      confirmText: 'Xóa',
+      destructive: true,
+    }))) return;
     await deleteTransaction(t.id);
   }
 
