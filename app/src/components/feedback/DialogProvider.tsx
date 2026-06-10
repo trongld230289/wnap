@@ -5,6 +5,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useI18n } from '@/i18n/useI18n';
 
 type ConfirmOpts = {
   title: string;
@@ -44,6 +45,7 @@ type State =
   | null;
 
 export function DialogProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n();
   const [state, setState] = useState<State>(null);
   const [value, setValue] = useState('');
 
@@ -100,7 +102,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
             <DialogFooter>
               {state.kind !== 'notify' && (
                 <Button variant="outline" onClick={cancel}>
-                  {state.kind === 'confirm' ? (state.opts.cancelText ?? 'Hủy') : 'Hủy'}
+                  {state.kind === 'confirm' ? (state.opts.cancelText ?? t('common.cancel')) : t('common.cancel')}
                 </Button>
               )}
               <Button
@@ -112,10 +114,10 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
                 }}
               >
                 {state.kind === 'confirm'
-                  ? (state.opts.confirmText ?? 'Đồng ý')
+                  ? (state.opts.confirmText ?? t('common.confirm'))
                   : state.kind === 'prompt'
-                    ? (state.opts.confirmText ?? 'Lưu')
-                    : (state.opts.okText ?? 'OK')}
+                    ? (state.opts.confirmText ?? t('common.save'))
+                    : (state.opts.okText ?? t('common.ok'))}
               </Button>
             </DialogFooter>
           </DialogContent>

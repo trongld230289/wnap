@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ChevronDownIcon, LogOutIcon, SparklesIcon, UserPlusIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useDelight } from '../delight/useDelight';
+import { useI18n } from '../i18n/useI18n';
 import { InviteDialog } from './InviteDialog';
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
@@ -12,6 +13,7 @@ export function UserMenu({
   displayName, budgetName, budgetId,
 }: { displayName: string; budgetName: string; budgetId: string }) {
   const { userEnabled, toggle } = useDelight();
+  const { t } = useI18n();
   const [inviteOpen, setInviteOpen] = useState(false);
   const initial = (displayName.trim()[0] ?? '?').toUpperCase();
 
@@ -21,7 +23,7 @@ export function UserMenu({
         <DropdownMenuTrigger asChild>
           <button
             className="flex items-center gap-2 rounded-full border bg-card py-1 pl-1 pr-2 text-sm transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label="Menu tài khoản"
+            aria-label={t('menu.account')}
           >
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
               {initial}
@@ -37,17 +39,17 @@ export function UserMenu({
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => setInviteOpen(true)}>
-            <UserPlusIcon /> Mời thành viên
+            <UserPlusIcon /> {t('menu.invite')}
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={(e) => { e.preventDefault(); toggle(); }}
           >
-            <SparklesIcon /> Hiệu ứng chuyển động
-            <span className="ml-auto text-xs text-muted-foreground">{userEnabled ? 'Bật' : 'Tắt'}</span>
+            <SparklesIcon /> {t('menu.motion')}
+            <span className="ml-auto text-xs text-muted-foreground">{userEnabled ? t('menu.on') : t('menu.off')}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={() => supabase.auth.signOut()}>
-            <LogOutIcon /> Đăng xuất
+            <LogOutIcon /> {t('menu.signOut')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useI18n } from '../i18n/useI18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function AuthPage() {
+  const { t } = useI18n();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,15 +33,15 @@ export function AuthPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={submit} className="space-y-3">
-            <Input type="email" placeholder="Email" value={email} required onChange={(e) => setEmail(e.target.value)} />
-            <Input type="password" placeholder="Mật khẩu (≥6 ký tự)" value={password} required minLength={6} onChange={(e) => setPassword(e.target.value)} />
+            <Input type="email" placeholder={t('auth.email')} value={email} required onChange={(e) => setEmail(e.target.value)} />
+            <Input type="password" placeholder={t('auth.password')} value={password} required minLength={6} onChange={(e) => setPassword(e.target.value)} />
             <Button type="submit" className="w-full" disabled={busy}>
-              {mode === 'signin' ? 'Đăng nhập' : 'Đăng ký'}
+              {mode === 'signin' ? t('auth.signIn') : t('auth.signUp')}
             </Button>
           </form>
           {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
           <button onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')} className="mt-3 w-full text-sm text-muted-foreground hover:text-foreground">
-            {mode === 'signin' ? 'Chưa có tài khoản? Đăng ký' : 'Đã có tài khoản? Đăng nhập'}
+            {mode === 'signin' ? t('auth.toSignUp') : t('auth.toSignIn')}
           </button>
         </CardContent>
       </Card>
