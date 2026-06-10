@@ -12,6 +12,7 @@ import { PLAN_FILTERS } from '../budget/planFilters';
 import type { FilterId } from '../budget/planFilters';
 import { Button } from '@/components/ui/button';
 import { useDialogs } from '../components/feedback/DialogProvider';
+import { useI18n } from '../i18n/useI18n';
 
 type ModalState =
   | { type: 'assign' }
@@ -22,26 +23,27 @@ type ModalState =
 export function PlanScreen() {
   const { loading, rows, groups, addGroup, addCategory } = useBudget();
   const { prompt, notify } = useDialogs();
+  const { t } = useI18n();
   const [active, setActive] = useState<FilterId | null>(null);
   const [modal, setModal] = useState<ModalState>(null);
   const [showActivity, setShowActivity] = useState(false);
 
-  if (loading) return <p className="m-10 text-muted-foreground">Đang tải ngân sách…</p>;
+  if (loading) return <p className="m-10 text-muted-foreground">{t('plan.loading')}</p>;
 
   const predicate = active ? PLAN_FILTERS.find((f) => f.id === active)!.predicate : () => true;
   const visibleRows = rows.filter(predicate);
   const userGroups = groups.filter((g) => !g.isSystem);
 
   async function onAddGroup() {
-    const name = await prompt({ title: 'Nhóm mới', label: 'Tên nhóm', placeholder: 'vd Chi phí cố định', confirmText: 'Tạo' });
+    const name = await prompt({ title: t('plan.newGroup'), label: t('plan.groupName'), placeholder: t('plan.groupPlaceholder'), confirmText: t('plan.create') });
     if (name) await addGroup(name);
   }
   async function onAddCategory() {
     if (userGroups.length === 0) {
-      await notify({ title: 'Chưa có nhóm', description: 'Tạo nhóm trước đã rồi mới thêm category.' });
+      await notify({ title: t('plan.noGroupTitle'), description: t('plan.noGroupDesc') });
       return;
     }
-    const name = await prompt({ title: 'Category mới', label: 'Tên category', placeholder: 'vd Tiền điện', confirmText: 'Tạo' });
+    const name = await prompt({ title: t('plan.newCategory'), label: t('plan.categoryName'), placeholder: t('plan.categoryPlaceholder'), confirmText: t('plan.create') });
     if (!name) return;
     await addCategory(userGroups[0].id, name, 'need');
   }
@@ -56,9 +58,9 @@ export function PlanScreen() {
         <FilterCards active={active} onToggle={(id) => setActive(active === id ? null : id)} />
       </div>
       <div className="mb-2 flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" onClick={onAddGroup}>＋ Nhóm</Button>
-        <Button variant="outline" size="sm" onClick={onAddCategory}>＋ Category</Button>
-        <Button variant="outline" size="sm" onClick={() => setShowActivity(true)}>📋 Hoạt động</Button>
+        <Button variant="outline" size="sm" onClick={onAddGroup}>{t('plan.addGroup')}</Button>
+        <Button variant="outline" size="sm" onClick={onAddCategory}>{t('plan.addCategory')}</Button>
+        <Button variant="outline" size="sm" onClick={() => setShowActivity(true)}>{t('plan.activity')}</Button>
       </div>
       <div className="overflow-x-auto">
         <CategoryTable

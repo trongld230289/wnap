@@ -5,10 +5,12 @@ import { Count } from '../delight/Count';
 import { useDelight } from '../delight/useDelight';
 import { usePrevious } from '../delight/usePrevious';
 import { detectRtaSignal } from '../delight/signals';
+import { useI18n } from '../i18n/useI18n';
 
 export function RtaHeader({ onAssign }: { onAssign: () => void }) {
   const { rta } = useBudget();
   const { enabled } = useDelight();
+  const { t } = useI18n();
   const tone = rta < 0 ? 'bg-status-red' : rta === 0 ? 'bg-status-gray' : 'bg-primary';
 
   const prevRta = usePrevious(rta);
@@ -36,9 +38,9 @@ export function RtaHeader({ onAssign }: { onAssign: () => void }) {
     >
       <span className="dl-ripple" aria-hidden />
       <span className="font-semibold">
-        Sẵn sàng phân bổ: <Count value={rta} suffix="₫" />
+        {t('rta.ready')}: <Count value={rta} suffix="₫" />
       </span>
-      <button onClick={onAssign} className="rounded-md bg-white/20 px-2 py-0.5 text-sm font-medium hover:bg-white/30">＋ Assign</button>
+      <button onClick={onAssign} className="rounded-md bg-white/20 px-2 py-0.5 text-sm font-medium hover:bg-white/30">{t('rta.assign')}</button>
     </div>
   );
 }

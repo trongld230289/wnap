@@ -11,9 +11,12 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useI18n } from '../i18n/useI18n';
+import type { TKey } from '../i18n/dict';
 
 export function AssignPopover({ onClose }: { onClose: () => void }) {
   const { rows, rta, summaries, viewMonth, firstMonth, categoryName, applyProposals, setAssigned } = useBudget();
+  const { t } = useI18n();
   const [tab, setTab] = useState<'auto' | 'manual'>('auto');
   const [preview, setPreview] = useState<{ kind: AutoKind; proposals: Proposal[] } | null>(null);
   const [manualCat, setManualCat] = useState(rows[0]?.categoryId ?? '');
@@ -31,7 +34,7 @@ export function AssignPopover({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <Modal title={`Phân bổ · RTA ${formatVnd(rta)}₫`} onClose={onClose}>
+    <Modal title={t('assign.title', { amt: formatVnd(rta) })} onClose={onClose}>
       <div className="mb-3 flex gap-1">
         <Button size="sm" variant={tab === 'auto' ? 'default' : 'secondary'} onClick={() => setTab('auto')}>Auto</Button>
         <Button size="sm" variant={tab === 'manual' ? 'default' : 'secondary'} onClick={() => setTab('manual')}>Manual</Button>
@@ -42,30 +45,30 @@ export function AssignPopover({ onClose }: { onClose: () => void }) {
             <button key={k.id} onClick={() => setPreview({ kind: k.id, proposals: computeProposals(k.id, ctx) })}
               className={cn('block w-full rounded-lg border px-3 py-2 text-left text-sm hover:bg-accent',
                 preview?.kind === k.id ? 'border-primary' : 'border-border')}>
-              {k.label}
+              {t(`auto.${k.id}` as TKey)}
             </button>
           ))}
           {preview && (
             <div className="mt-2 rounded-lg bg-accent p-2.5 text-sm text-accent-foreground">
-              {preview.proposals.length === 0 ? 'Không có thay đổi.' : (
+              {preview.proposals.length === 0 ? t('assign.noChange') : (
                 <ul className="list-disc pl-5">
                   {preview.proposals.map((p) => <li key={p.categoryId}>{categoryName(p.categoryId)} → <span className="tabular-nums">{formatVnd(p.newAssigned)}</span></li>)}
                 </ul>
               )}
             </div>
           )}
-          <Button className="mt-3 w-full" onClick={applyAuto} disabled={!preview || preview.proposals.length === 0}>Áp đề xuất</Button>
+          <Button className="mt-3 w-full" onClick={applyAuto} disabled={!preview || preview.proposals.length === 0}>{t('assign.apply')}</Button>
         </div>
       ) : (
         <div className="space-y-2">
           <Select value={manualCat} onValueChange={setManualCat}>
-            <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('assign.categoryPlaceholder')} /></SelectTrigger>
             <SelectContent>
               {rows.map((r) => <SelectItem key={r.categoryId} value={r.categoryId}>{categoryName(r.categoryId)}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Input inputMode="numeric" value={manualAmt} onChange={(e) => setManualAmt(e.target.value)} placeholder="Cộng thêm vào Assigned (vd 500.000)" />
-          <Button className="w-full" onClick={applyManual}>Phân bổ</Button>
+          <Input inputMode="numeric" value={manualAmt} onChange={(e) => setManualAmt(e.target.value)} placeholder={t('assign.manualPlaceholder')} />
+          <Button className="w-full" onClick={applyManual}>{t('assign.submit')}</Button>
         </div>
       )}
     </Modal>

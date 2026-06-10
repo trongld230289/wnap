@@ -12,6 +12,7 @@ import { useDelight } from '../delight/useDelight';
 import { usePrevious } from '../delight/usePrevious';
 import { detectRowSignal } from '../delight/signals';
 import { SWEEP_MS, HEAL_MS, SPARKLE_MS } from '../delight/motion';
+import { useI18n } from '../i18n/useI18n';
 import type { PlanRow } from '../engine';
 
 function AssignedCell({ row }: { row: PlanRow }) {
@@ -46,6 +47,7 @@ function CategoryRow({ row, onMoveMoney, onEditTarget }: {
 }) {
   const { categoryName } = useBudget();
   const { enabled } = useDelight();
+  const { t } = useI18n();
   const { color } = barFill(row);
   const prevColor = usePrevious(color);
   const prevAssigned = usePrevious(row.assigned);
@@ -76,14 +78,14 @@ function CategoryRow({ row, onMoveMoney, onEditTarget }: {
             <Sparkle show={spark} />
           </span>
           <span className="max-w-[120px] truncate sm:max-w-none">{categoryName(row.categoryId)}</span>
-          <button onClick={() => onEditTarget(row.categoryId)} title="Mục tiêu" className="opacity-60 hover:opacity-100">🎯</button>
+          <button onClick={() => onEditTarget(row.categoryId)} title={t('cat.targetTip')} className="opacity-60 hover:opacity-100">🎯</button>
         </span>
       </td>
       <td className="px-2 py-2 text-right sm:px-3"><AssignedCell row={row} /></td>
       <td className="hidden px-3 py-2 text-right tabular-nums text-muted-foreground sm:table-cell">{formatVnd(row.activity)}</td>
       <td className={cn('relative px-2 py-2 text-right sm:px-3', receive && 'dl-receive', heal && 'dl-heal')}>
         <span className="dl-sweep" aria-hidden />
-        <button onClick={() => onMoveMoney(row.categoryId)} title="Chuyển tiền" className="cursor-pointer"><AvailableBar row={row} /></button>
+        <button onClick={() => onMoveMoney(row.categoryId)} title={t('move.title')} className="cursor-pointer"><AvailableBar row={row} /></button>
       </td>
     </tr>
   );
@@ -97,6 +99,7 @@ interface Props {
 
 export function CategoryTable({ visibleRows, onMoveMoney, onEditTarget }: Props) {
   const { groups, groupIdOf } = useBudget();
+  const { t } = useI18n();
   const byGroup = new Map<string, PlanRow[]>();
   for (const r of visibleRows) {
     const g = groupIdOf(r.categoryId);
@@ -108,10 +111,10 @@ export function CategoryTable({ visibleRows, onMoveMoney, onEditTarget }: Props)
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-xs uppercase text-muted-foreground">
-            <th className="px-2 py-2 text-left font-medium sm:px-3">Category</th>
-            <th className="px-2 py-2 text-right font-medium sm:px-3">Assigned</th>
-            <th className="hidden px-3 py-2 text-right font-medium sm:table-cell">Activity</th>
-            <th className="px-2 py-2 text-right font-medium sm:px-3">Available</th>
+            <th className="px-2 py-2 text-left font-medium sm:px-3">{t('col.category')}</th>
+            <th className="px-2 py-2 text-right font-medium sm:px-3">{t('col.assigned')}</th>
+            <th className="hidden px-3 py-2 text-right font-medium sm:table-cell">{t('col.activity')}</th>
+            <th className="px-2 py-2 text-right font-medium sm:px-3">{t('col.available')}</th>
           </tr>
         </thead>
         <tbody>

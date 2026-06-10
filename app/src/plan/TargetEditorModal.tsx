@@ -7,17 +7,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useI18n } from '../i18n/useI18n';
 
 export function TargetEditorModal({ categoryId, onClose }: { categoryId: string; onClose: () => void }) {
   const { rows, categoryName, setTarget, removeTarget, setSnooze } = useBudget();
+  const { t } = useI18n();
   const row = rows.find((r) => r.categoryId === categoryId)!;
-  const t = row.target;
-  const [strategy, setStrategy] = useState<TargetStrategy>(t?.strategy ?? 'set_aside');
-  const [amount, setAmount] = useState(t ? formatVnd(t.amount) : '');
-  const [cadence, setCadence] = useState<TargetCadence>(t?.cadence ?? 'monthly');
-  const [dueDay, setDueDay] = useState(t?.dueDay != null ? String(t.dueDay) : '');
-  const [dueWeekday, setDueWeekday] = useState(t?.dueWeekday != null ? String(t.dueWeekday) : '1');
-  const [dueDate, setDueDate] = useState(t?.dueDate ?? '');
+  const tgt = row.target;
+  const [strategy, setStrategy] = useState<TargetStrategy>(tgt?.strategy ?? 'set_aside');
+  const [amount, setAmount] = useState(tgt ? formatVnd(tgt.amount) : '');
+  const [cadence, setCadence] = useState<TargetCadence>(tgt?.cadence ?? 'monthly');
+  const [dueDay, setDueDay] = useState(tgt?.dueDay != null ? String(tgt.dueDay) : '');
+  const [dueWeekday, setDueWeekday] = useState(tgt?.dueWeekday != null ? String(tgt.dueWeekday) : '1');
+  const [dueDate, setDueDate] = useState(tgt?.dueDate ?? '');
   const [error, setError] = useState('');
 
   const needsDate = strategy === 'have_balance' || cadence === 'yearly' || cadence === 'custom';
@@ -25,8 +27,8 @@ export function TargetEditorModal({ categoryId, onClose }: { categoryId: string;
 
   async function save() {
     const amt = parseVnd(amount);
-    if (amt <= 0) { setError('Nhập số tiền > 0'); return; }
-    if (needsDate && !dueDate) { setError('Chọn ngày hạn (deadline)'); return; }
+    if (amt <= 0) { setError(t('target.errAmount')); return; }
+    if (needsDate && !dueDate) { setError(t('target.errDate')); return; }
     await setTarget(categoryId, {
       strategy, amount: amt, cadence,
       dueDay: !needsDate && !isWeekly && dueDay ? Number(dueDay) : null,
@@ -38,52 +40,52 @@ export function TargetEditorModal({ categoryId, onClose }: { categoryId: string;
 
   const lbl = 'text-xs text-muted-foreground';
   return (
-    <Modal title={`Mục tiêu · ${categoryName(categoryId)}`} onClose={onClose}>
+    <Modal title={t('target.title', { name: categoryName(categoryId) })} onClose={onClose}>
       <div className="space-y-2">
-        <div><Label className={lbl}>Chiến lược</Label>
+        <div><Label className={lbl}>{t('target.strategy')}</Label>
           <Select value={strategy} onValueChange={(v) => setStrategy(v as TargetStrategy)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="set_aside">Set aside (gom đều mỗi tháng)</SelectItem>
-              <SelectItem value="refill">Refill up to (bơm đầy tới mức)</SelectItem>
-              <SelectItem value="have_balance">Have balance by (đạt số dư trước hạn)</SelectItem>
+              <SelectItem value="set_aside">{t('target.setAside')}</SelectItem>
+              <SelectItem value="refill">{t('target.refill')}</SelectItem>
+              <SelectItem value="have_balance">{t('target.haveBalance')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <div><Label className={lbl}>Số tiền</Label>
+        <div><Label className={lbl}>{t('target.amount')}</Label>
           <Input inputMode="numeric" value={amount} onChange={(e) => { setAmount(e.target.value); setError(''); }} placeholder="vd 600.000" />
         </div>
-        <div><Label className={lbl}>Chu kỳ</Label>
+        <div><Label className={lbl}>{t('target.cadence')}</Label>
           <Select value={cadence} onValueChange={(v) => setCadence(v as TargetCadence)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="monthly">Hằng tháng</SelectItem>
-              <SelectItem value="weekly">Hằng tuần</SelectItem>
-              <SelectItem value="yearly">Hằng năm</SelectItem>
-              <SelectItem value="custom">Tùy chỉnh (theo hạn)</SelectItem>
+              <SelectItem value="monthly">{t('target.monthly')}</SelectItem>
+              <SelectItem value="weekly">{t('target.weekly')}</SelectItem>
+              <SelectItem value="yearly">{t('target.yearly')}</SelectItem>
+              <SelectItem value="custom">{t('target.custom')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        {isWeekly && (<div><Label className={lbl}>Thứ trong tuần</Label>
+        {isWeekly && (<div><Label className={lbl}>{t('target.weekday')}</Label>
           <Select value={dueWeekday} onValueChange={setDueWeekday}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="1">Thứ 2</SelectItem><SelectItem value="2">Thứ 3</SelectItem><SelectItem value="3">Thứ 4</SelectItem>
-              <SelectItem value="4">Thứ 5</SelectItem><SelectItem value="5">Thứ 6</SelectItem><SelectItem value="6">Thứ 7</SelectItem><SelectItem value="0">Chủ nhật</SelectItem>
+              <SelectItem value="1">{t('weekday.mon')}</SelectItem><SelectItem value="2">{t('weekday.tue')}</SelectItem><SelectItem value="3">{t('weekday.wed')}</SelectItem>
+              <SelectItem value="4">{t('weekday.thu')}</SelectItem><SelectItem value="5">{t('weekday.fri')}</SelectItem><SelectItem value="6">{t('weekday.sat')}</SelectItem><SelectItem value="0">{t('weekday.sun')}</SelectItem>
             </SelectContent>
           </Select></div>)}
-        {needsDate && (<div><Label className={lbl}>Hạn (deadline)</Label>
+        {needsDate && (<div><Label className={lbl}>{t('target.deadline')}</Label>
           <Input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); setError(''); }} /></div>)}
-        {!isWeekly && !needsDate && (<div><Label className={lbl}>Ngày đến hạn trong tháng (tùy chọn, 1–31)</Label>
+        {!isWeekly && !needsDate && (<div><Label className={lbl}>{t('target.dueDay')}</Label>
           <Input value={dueDay} onChange={(e) => setDueDay(e.target.value)} placeholder="vd 15" /></div>)}
         {error && <p className="text-sm text-destructive">{error}</p>}
         <div className="flex gap-2 pt-2">
-          <Button className="flex-1" onClick={save}>Lưu</Button>
+          <Button className="flex-1" onClick={save}>{t('target.save')}</Button>
           <Button variant="secondary" onClick={async () => { await setSnooze(categoryId, !row.snoozed); onClose(); }}>
-            {row.snoozed ? 'Bỏ snooze' : '😴 Snooze'}
+            {row.snoozed ? t('target.unsnooze') : t('target.snooze')}
           </Button>
         </div>
-        {t && <Button variant="ghost" className="w-full text-destructive" onClick={async () => { await removeTarget(categoryId); onClose(); }}>Xóa mục tiêu</Button>}
+        {row.target && <Button variant="ghost" className="w-full text-destructive" onClick={async () => { await removeTarget(categoryId); onClose(); }}>{t('target.remove')}</Button>}
       </div>
     </Modal>
   );
