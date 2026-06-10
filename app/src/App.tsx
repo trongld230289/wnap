@@ -67,12 +67,12 @@ function AppInner() {
           <header className="mx-auto flex max-w-[980px] items-center justify-between gap-2 px-3 pt-3">
             <span className="text-lg font-bold text-primary">WNAP</span>
             <div className="flex items-center gap-2">
+              <LangSwitch />
               <UserMenu
                 displayName={budget.display_name}
                 budgetName={budget.budget_name}
                 budgetId={budget.budget_id}
               />
-              <LangSwitch />
             </div>
           </header>
           <AppTabs tab={tab} onChange={setTab} />

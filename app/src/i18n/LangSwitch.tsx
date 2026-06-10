@@ -2,24 +2,28 @@ import { useI18n } from './useI18n';
 
 function FlagVN() {
   return (
-    <svg viewBox="0 0 30 20" className="h-full w-full object-cover" aria-hidden>
-      <rect width="30" height="20" fill="#da251d" />
-      <path fill="#ff0" d="M15 4l1.76 5.42h5.7l-4.61 3.35 1.76 5.42L15 14.84l-4.61 3.35 1.76-5.42-4.61-3.35h5.7z" />
+    <svg viewBox="0 0 32 32" className="h-full w-full" aria-hidden>
+      <rect width="32" height="32" fill="#da251d" />
+      <path
+        fill="#ff0"
+        d="M16 7 L18.23 12.93 L24.56 13.22 L19.61 17.17 L21.29 23.28 L16 19.8 L10.71 23.28 L12.39 17.17 L7.44 13.22 L13.77 12.93 Z"
+      />
     </svg>
   );
 }
 
 function FlagGB() {
   return (
-    <svg viewBox="0 0 60 30" className="h-full w-full object-cover" aria-hidden>
-      <clipPath id="gb-c"><rect width="60" height="30" /></clipPath>
-      <g clipPath="url(#gb-c)">
-        <rect width="60" height="30" fill="#012169" />
-        <path d="M0,0 60,30 M60,0 0,30" stroke="#fff" strokeWidth="6" />
-        <path d="M0,0 60,30 M60,0 0,30" stroke="#C8102E" strokeWidth="4" />
-        <path d="M30,0 V30 M0,15 H60" stroke="#fff" strokeWidth="10" />
-        <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" strokeWidth="6" />
-      </g>
+    <svg viewBox="0 0 32 32" className="h-full w-full" aria-hidden>
+      <rect width="32" height="32" fill="#012169" />
+      {/* white diagonals */}
+      <path d="M0,0 L32,32 M32,0 L0,32" stroke="#fff" strokeWidth="7" />
+      {/* red diagonals */}
+      <path d="M0,0 L32,32 M32,0 L0,32" stroke="#C8102E" strokeWidth="3.5" />
+      {/* white cross */}
+      <path d="M16,0 V32 M0,16 H32" stroke="#fff" strokeWidth="11" />
+      {/* red cross */}
+      <path d="M16,0 V32 M0,16 H32" stroke="#C8102E" strokeWidth="6.5" />
     </svg>
   );
 }
@@ -33,7 +37,7 @@ export function LangSwitch() {
       onClick={() => setLang(next)}
       title={label}
       aria-label={label}
-      className="size-7 shrink-0 overflow-hidden rounded-full border transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="size-8 shrink-0 overflow-hidden rounded-full border border-border shadow-sm ring-1 ring-black/5 transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {lang === 'vi' ? <FlagVN /> : <FlagGB />}
     </button>
