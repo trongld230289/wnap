@@ -11,10 +11,21 @@ import type { AppTab } from './nav/AppTabs';
 import { DelightProvider } from './delight/useDelight';
 import { DialogProvider } from './components/feedback/DialogProvider';
 import { UserMenu } from './budget/UserMenu';
+import { I18nProvider, useI18n } from './i18n/useI18n';
+import { LangSwitch } from './i18n/LangSwitch';
 
 interface Membership { budget_id: string; budget_name: string; display_name: string; }
 
 export default function App() {
+  return (
+    <I18nProvider>
+      <AppInner />
+    </I18nProvider>
+  );
+}
+
+function AppInner() {
+  const { t } = useI18n();
   const { session, loading } = useSession();
   const [budget, setBudget] = useState<Membership | null>(null);
   const [checking, setChecking] = useState(true);
@@ -46,7 +57,7 @@ export default function App() {
     else { setBudget(null); setChecking(false); }
   }, [session, loadBudget]);
 
-  if (loading || checking) return <p className="p-10 text-muted-foreground">Đang tải…</p>;
+  if (loading || checking) return <p className="p-10 text-muted-foreground">{t('common.loading')}</p>;
   if (!session) return <AuthPage />;
   if (!budget) return <SetupPage onDone={loadBudget} />;
   return (
@@ -55,11 +66,14 @@ export default function App() {
         <DialogProvider>
           <header className="mx-auto flex max-w-[980px] items-center justify-between gap-2 px-3 pt-3">
             <span className="text-lg font-bold text-primary">WNAP</span>
-            <UserMenu
-              displayName={budget.display_name}
-              budgetName={budget.budget_name}
-              budgetId={budget.budget_id}
-            />
+            <div className="flex items-center gap-2">
+              <UserMenu
+                displayName={budget.display_name}
+                budgetName={budget.budget_name}
+                budgetId={budget.budget_id}
+              />
+              <LangSwitch />
+            </div>
           </header>
           <AppTabs tab={tab} onChange={setTab} />
           {tab === 'plan' ? <PlanScreen /> : <LedgerScreen />}
