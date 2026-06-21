@@ -30,6 +30,7 @@ export function GuideSidebar({
   return (
     <>
       <select
+        aria-label={t('guide.modal.title')}
         className="sm:hidden m-2 p-2 border rounded-md w-[calc(100%-1rem)]"
         value={selection.kind === 'overview' ? '__overview__' : selection.id}
         onChange={(e) => {
