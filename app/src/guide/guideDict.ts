@@ -1,0 +1,51 @@
+export const guideDict = {
+  vi: {
+    'guide.modal.title': 'Hướng dẫn WNAP',
+    'guide.sidebar.overview': '🗺️ Tổng quan',
+    'guide.sidebar.extras': 'Tính năng bổ sung',
+    'guide.phase.setup': 'Giai đoạn 1: Thiết lập',
+    'guide.phase.assign': 'Giai đoạn 2: Phân bổ',
+    'guide.phase.daily': 'Giai đoạn 3: Hoạt động hàng ngày',
+    'guide.phase.maint': 'Giai đoạn 4: Bảo trì',
+    'guide.phase.family': 'Giai đoạn 5: Đồng bộ gia đình',
+    'guide.section.steps': 'Các bước',
+    'guide.section.example': 'Ví dụ',
+    'guide.section.tips': '💡 Mẹo',
+    // payday-assign (the proof-of-pattern case)
+    'guide.uc.payday-assign.title': 'Ngày lương — Phân bổ mỗi đồng (Rule 1)',
+    'guide.uc.payday-assign.step.1': 'Mở Plan tab',
+    'guide.uc.payday-assign.step.2': 'Kiểm tra Sẵn sàng phân bổ (RTA) > 0',
+    'guide.uc.payday-assign.step.3': 'Click "+ Phân bổ"',
+    'guide.uc.payday-assign.step.4': 'Chọn category và nhập số tiền',
+    'guide.uc.payday-assign.step.5': 'Lặp lại đến khi RTA = 0₫',
+    'guide.uc.payday-assign.example':
+      'Lương 20 triệu về tài khoản. RTA hiển thị 20.000.000₫. Phân bổ 5tr cho Tiền nhà, 3tr cho Ăn uống, 2tr Đi lại… cho đến khi RTA về 0.',
+    'guide.uc.payday-assign.tip.1': 'Bắt đầu từ chi phí bắt buộc (Bills) trước, sau đó Needs, cuối cùng Wants.',
+    'guide.uc.payday-assign.tip.2': 'Nếu lúng túng, dùng Auto-Assign → Underfunded để phân bổ tự động dựa trên Targets.',
+  },
+  en: {
+    'guide.modal.title': 'WNAP User Guide',
+    'guide.sidebar.overview': '🗺️ Overview',
+    'guide.sidebar.extras': 'Extra features',
+    'guide.phase.setup': 'Phase 1: Setup',
+    'guide.phase.assign': 'Phase 2: Assigning',
+    'guide.phase.daily': 'Phase 3: Daily activity',
+    'guide.phase.maint': 'Phase 4: Maintenance',
+    'guide.phase.family': 'Phase 5: Family sync',
+    'guide.section.steps': 'Steps',
+    'guide.section.example': 'Example',
+    'guide.section.tips': '💡 Tips',
+    'guide.uc.payday-assign.title': 'Payday — Give every dollar a job (Rule 1)',
+    'guide.uc.payday-assign.step.1': 'Open the Plan tab',
+    'guide.uc.payday-assign.step.2': 'Check that Ready to Assign (RTA) > 0',
+    'guide.uc.payday-assign.step.3': 'Click "+ Assign"',
+    'guide.uc.payday-assign.step.4': 'Pick a category and enter an amount',
+    'guide.uc.payday-assign.step.5': 'Repeat until RTA reaches 0',
+    'guide.uc.payday-assign.example':
+      'Salary of 20M arrives. RTA shows 20,000,000₫. Assign 5M to Rent, 3M to Food, 2M to Transport… until RTA reaches 0.',
+    'guide.uc.payday-assign.tip.1': 'Start with mandatory Bills, then Needs, then Wants.',
+    'guide.uc.payday-assign.tip.2': 'If stuck, use Auto-Assign → Underfunded to allocate automatically based on Targets.',
+  },
+} as const;
+
+export type GuideTKey = string;
