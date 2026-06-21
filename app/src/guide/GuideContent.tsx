@@ -1,21 +1,15 @@
 import { useGuideI18n } from './useGuideI18n';
 import type { UseCase } from './useCases';
+import { OverviewMindmap } from './OverviewMindmap';
 
 export type GuideContentProps =
-  | { kind: 'overview' }
+  | { kind: 'overview'; onSelectLeaf?: (id: string) => void }
   | { kind: 'useCase'; useCase: UseCase };
 
 export function GuideContent(props: GuideContentProps) {
   const { t } = useGuideI18n();
   if (props.kind === 'overview') {
-    return (
-      <div
-        data-testid="overview-placeholder"
-        className="flex items-center justify-center min-h-[400px] text-muted-foreground"
-      >
-        Overview mindmap (Task 7)
-      </div>
-    );
+    return <OverviewMindmap onSelectLeaf={props.onSelectLeaf ?? (() => {})} />;
   }
   const { useCase: uc } = props;
   return (

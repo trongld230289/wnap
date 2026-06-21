@@ -1,8 +1,15 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { I18nProvider } from '@/i18n/useI18n';
 import { GuideContent } from '../GuideContent';
 import { USE_CASES } from '../useCases';
+
+vi.mock('mermaid', () => ({
+  default: {
+    initialize: vi.fn(),
+    render: vi.fn().mockResolvedValue({ svg: '<svg data-testid="ovw"></svg>', bindFunctions: () => {} }),
+  },
+}));
 
 const payday = USE_CASES.find((u) => u.id === 'payday-assign')!;
 
@@ -22,12 +29,8 @@ describe('GuideContent', () => {
     expect(screen.getAllByTestId('uc-tip')).toHaveLength(2);
   });
 
-  test('renders overview placeholder when kind=overview', () => {
-    render(
-      <I18nProvider>
-        <GuideContent kind="overview" />
-      </I18nProvider>,
-    );
-    expect(screen.getByTestId('overview-placeholder')).toBeInTheDocument();
+  test('renders OverviewMindmap when kind=overview', async () => {
+    render(<I18nProvider><GuideContent kind="overview" /></I18nProvider>);
+    await screen.findByTestId('ovw');
   });
 });
