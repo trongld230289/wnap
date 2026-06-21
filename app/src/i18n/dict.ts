@@ -58,6 +58,7 @@ export const dict = {
     'plan.categoryPlaceholder': 'vd Tiền điện',
     'plan.noGroupTitle': 'Chưa có nhóm',
     'plan.noGroupDesc': 'Tạo nhóm trước đã rồi mới thêm category.',
+    'plan.emptyGroup': 'Nhóm trống — thêm category vào nhóm này.',
     'plan.monthLabel': 'Tháng {month}/{year}',
     // filters
     'filter.overspent': 'Vượt chi',
@@ -250,6 +251,7 @@ export const dict = {
     'plan.categoryPlaceholder': 'e.g. Electricity',
     'plan.noGroupTitle': 'No group yet',
     'plan.noGroupDesc': 'Create a group first, then add a category.',
+    'plan.emptyGroup': 'Empty group — add a category here.',
     'plan.monthLabel': '{month}/{year}',
     'filter.overspent': 'Overspent',
     'filter.underfunded': 'Underfunded',

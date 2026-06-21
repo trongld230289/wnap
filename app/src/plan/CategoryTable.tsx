@@ -120,10 +120,12 @@ export function CategoryTable({ visibleRows, onMoveMoney, onEditTarget }: Props)
         <tbody>
           {groups.filter((g) => !g.isSystem).map((g) => {
             const rows = byGroup.get(g.id) ?? [];
-            if (rows.length === 0) return null;
             return (
               <Fragment key={g.id}>
                 <tr><td colSpan={4} className="bg-muted/60 px-3 py-1.5 font-semibold text-foreground/80">{g.name}</td></tr>
+                {rows.length === 0 && (
+                  <tr><td colSpan={4} className="px-3 py-2 text-xs text-muted-foreground italic">{t('plan.emptyGroup')}</td></tr>
+                )}
                 {rows.map((r) => (
                   <CategoryRow key={r.categoryId} row={r} onMoveMoney={onMoveMoney} onEditTarget={onEditTarget} />
                 ))}
