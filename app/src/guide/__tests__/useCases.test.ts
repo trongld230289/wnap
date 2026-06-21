@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { USE_CASES, PHASES } from '../useCases';
+import { guideDict } from '../guideDict';
 
 describe('USE_CASES', () => {
   test('has exactly 13 entries', () => {
@@ -34,4 +35,15 @@ describe('USE_CASES', () => {
       u.tipKeys.forEach((k, i) => expect(k).toBe(`guide.uc.${u.id}.tip.${i + 1}`));
     }
   });
+});
+
+test('every titleKey / exampleKey / stepKeys / tipKeys resolves in both vi and en', () => {
+  const allKeys = USE_CASES.flatMap((u) => [u.titleKey, u.exampleKey, ...u.stepKeys, ...u.tipKeys]);
+  for (const lang of ['vi', 'en'] as const) {
+    for (const k of allKeys) {
+      const v = (guideDict[lang] as Record<string, string>)[k];
+      expect(v, `${lang} missing ${k}`).toBeDefined();
+      expect(v!.length, `${lang} empty ${k}`).toBeGreaterThan(0);
+    }
+  }
 });
