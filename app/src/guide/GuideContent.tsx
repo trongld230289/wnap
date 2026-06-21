@@ -1,4 +1,5 @@
 import { useGuideI18n } from './useGuideI18n';
+import type { GuideTKey } from './guideDict';
 import type { UseCase } from './useCases';
 import { OverviewMindmap } from './OverviewMindmap';
 
@@ -14,7 +15,7 @@ export function GuideContent(props: GuideContentProps) {
   const { useCase: uc } = props;
   return (
     <article className="space-y-6">
-      <h2 className="text-2xl font-bold">{t(uc.titleKey)}</h2>
+      <h2 className="text-2xl font-bold">{t(uc.titleKey as GuideTKey)}</h2>
       <section>
         <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-2">
           {t('guide.section.steps')}
@@ -22,7 +23,7 @@ export function GuideContent(props: GuideContentProps) {
         <ol className="list-decimal pl-6 space-y-1">
           {uc.stepKeys.map((k) => (
             <li key={k} data-testid="uc-step">
-              {t(k)}
+              {t(k as GuideTKey)}
             </li>
           ))}
         </ol>
@@ -31,7 +32,7 @@ export function GuideContent(props: GuideContentProps) {
         <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-1">
           {t('guide.section.example')}
         </h3>
-        <p>{t(uc.exampleKey)}</p>
+        <p>{t(uc.exampleKey as GuideTKey)}</p>
       </section>
       <section className="rounded-md bg-amber-50 p-3">
         <h3 className="text-sm font-semibold uppercase text-amber-800 mb-1">
@@ -40,7 +41,7 @@ export function GuideContent(props: GuideContentProps) {
         <ul className="list-disc pl-6 space-y-1">
           {uc.tipKeys.map((k) => (
             <li key={k} data-testid="uc-tip">
-              {t(k)}
+              {t(k as GuideTKey)}
             </li>
           ))}
         </ul>
