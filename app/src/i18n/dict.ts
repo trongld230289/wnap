@@ -1,5 +1,7 @@
 export const dict = {
   vi: {
+    // guide
+    'guide.button.tooltip': 'Hướng dẫn sử dụng',
     // common
     'common.cancel': 'Hủy',
     'common.ok': 'OK',
@@ -200,6 +202,7 @@ export const dict = {
     'reconcile.confirm': 'Xác nhận đối soát (khóa cleared)',
   },
   en: {
+    'guide.button.tooltip': 'User guide',
     'common.cancel': 'Cancel',
     'common.ok': 'OK',
     'common.save': 'Save',

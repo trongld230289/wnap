@@ -13,6 +13,7 @@ import { DialogProvider } from './components/feedback/DialogProvider';
 import { UserMenu } from './budget/UserMenu';
 import { I18nProvider, useI18n } from './i18n/useI18n';
 import { LangSwitch } from './i18n/LangSwitch';
+import { GuideButton } from './guide/GuideButton';
 
 interface Membership { budget_id: string; budget_name: string; display_name: string; }
 
@@ -67,6 +68,7 @@ function AppInner() {
           <header className="mx-auto flex max-w-[980px] items-center justify-between gap-2 px-3 pt-3">
             <span className="text-lg font-bold text-primary">WNAP</span>
             <div className="flex items-center gap-2">
+              <GuideButton />
               <LangSwitch />
               <UserMenu
                 displayName={budget.display_name}

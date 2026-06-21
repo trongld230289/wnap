@@ -12,7 +12,7 @@ export function GuideModal({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}): JSX.Element {
+}) {
   const { t } = useGuideI18n();
   const [sel, setSel] = useState<SidebarSelection>({ kind: 'overview' });
 

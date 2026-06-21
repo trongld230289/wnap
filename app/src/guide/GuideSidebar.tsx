@@ -18,7 +18,7 @@ export function GuideSidebar({
 }: {
   selection: SidebarSelection;
   onSelect: (s: SidebarSelection) => void;
-}): JSX.Element {
+}) {
   const { t } = useGuideI18n();
   const isSelected = (s: SidebarSelection) =>
     s.kind === selection.kind &&
