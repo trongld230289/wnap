@@ -30,7 +30,7 @@ export function GuideModal({
         <DialogPrimitive.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[90vw] max-w-[1100px] h-[84vh] bg-background rounded-lg shadow-2xl overflow-hidden flex flex-col">
           <div className="flex items-center justify-between border-b px-4 py-3">
             <DialogPrimitive.Title className="text-lg font-bold">
-              {t('guide.modal.title')}
+              📖 {t('guide.modal.title')}
             </DialogPrimitive.Title>
             <DialogPrimitive.Close className="p-1 rounded hover:bg-muted">
               <X className="h-4 w-4" />
