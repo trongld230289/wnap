@@ -116,7 +116,9 @@ Items render in this fixed order:
 
 ### Structure
 
-Root has 3 branches — the user's mental model of the app:
+Root has 3 branches — the user's mental model of the app. The tree is identical in both languages; only labels are swapped via `guide.mm.*` keys.
+
+**Vietnamese (`vi`):**
 
 ```
 mindmap
@@ -142,6 +144,34 @@ mindmap
     👨‍👩‍👧 Gia đình
       Mời thành viên
       Cùng quản lý ngân sách
+```
+
+**English (`en`):**
+
+```
+mindmap
+  root((📊 WNAP))
+    🎯 Plan
+      Categories & Groups
+      Ready to Assign
+      Targets
+        Set aside
+        Refill
+        Have balance by date
+      Auto-Assign
+      Move Money
+      Snooze
+      Status filters
+    📓 Ledger
+      Accounts
+      Transactions
+        Outflow
+        Inflow
+        Transfer
+      Reconcile
+    👨‍👩‍👧 Family
+      Invite member
+      Shared budget
 ```
 
 ### Interactivity
@@ -176,31 +206,39 @@ export type UseCase = {
 };
 ```
 
-### Listing
+### Listing (both languages)
 
-| # | Phase | id | Vietnamese title (source) |
-|---|-------|-----|---------------------------|
-| 1 | setup | `design-categories` | Thiết kế danh mục & nhóm |
-| 2 | setup | `connect-accounts` | Tạo và kết nối tài khoản |
-| 3 | assign | `payday-assign` | Ngày lương — Phân bổ mỗi đồng (Rule 1) |
-| 4 | assign | `auto-assign` | Dùng Auto-Assign để phân bổ nhanh |
-| 5 | daily | `record-transaction` | Ghi nhận giao dịch hàng ngày |
-| 6 | daily | `overspend-roll` | Khi vượt chi — Roll With The Punches (Rule 3) |
-| 7 | maint | `reconcile` | Đối soát số dư với ngân hàng |
-| 8 | family | `use-together` | Sử dụng WNAP cùng gia đình |
-| 9 | family | `check-wallet` | Kiểm tra "ví" trước khi tiêu |
-| 10 | extras | `snooze-target` | Tạm hoãn mục tiêu (Snooze) |
-| 11 | extras | `move-money` | Chuyển tiền giữa các danh mục (Move Money) |
-| 12 | extras | `invite-member` | Mời thành viên gia đình bằng invite code |
-| 13 | extras | `filter-cards` | Đọc 5 thẻ bộ lọc trạng thái |
+| # | Phase | id | Vietnamese title | English title |
+|---|-------|-----|------------------|---------------|
+| 1 | setup | `design-categories` | Thiết kế danh mục & nhóm | Design categories & groups |
+| 2 | setup | `connect-accounts` | Tạo và kết nối tài khoản | Create and connect accounts |
+| 3 | assign | `payday-assign` | Ngày lương — Phân bổ mỗi đồng (Rule 1) | Payday — Give every dollar a job (Rule 1) |
+| 4 | assign | `auto-assign` | Dùng Auto-Assign để phân bổ nhanh | Use Auto-Assign for quick allocation |
+| 5 | daily | `record-transaction` | Ghi nhận giao dịch hàng ngày | Record daily transactions |
+| 6 | daily | `overspend-roll` | Khi vượt chi — Roll With The Punches (Rule 3) | When you overspend — Roll With The Punches (Rule 3) |
+| 7 | maint | `reconcile` | Đối soát số dư với ngân hàng | Reconcile balance with the bank |
+| 8 | family | `use-together` | Sử dụng WNAP cùng gia đình | Use WNAP with your family |
+| 9 | family | `check-wallet` | Kiểm tra "ví" trước khi tiêu | Check your "wallet" before spending |
+| 10 | extras | `snooze-target` | Tạm hoãn mục tiêu (Snooze) | Snooze a target |
+| 11 | extras | `move-money` | Chuyển tiền giữa các danh mục (Move Money) | Move money between categories |
+| 12 | extras | `invite-member` | Mời thành viên gia đình bằng invite code | Invite a family member via invite code |
+| 13 | extras | `filter-cards` | Đọc 5 thẻ bộ lọc trạng thái | Reading the 5 status filter cards |
 
 Cases 1–9 are adapted from `wnap/knowledge-based/ynap-all-use-case.md` (Situations 1–9). Cases 10–13 come from the gap analysis between the codebase and the knowledge base, covering implemented features the documentation does not yet explain.
 
-### Example — fully specified case (`payday-assign`)
+### Example — fully specified case (`payday-assign`), both languages
 
+**Vietnamese (`vi`):**
 - **Steps (5):** Mở Plan tab → Kiểm tra Sẵn sàng phân bổ (RTA) > 0 → Click "+ Phân bổ" → Chọn category → Nhập số tiền → Lặp lại đến khi RTA = 0₫
 - **Example:** "Lương 20 triệu về tài khoản. RTA hiển thị 20.000.000₫. Phân bổ 5tr cho 'Tiền nhà', 3tr cho 'Ăn uống', 2tr 'Đi lại'… cho đến khi RTA về 0."
 - **Tips:** "Bắt đầu từ chi phí bắt buộc (Bills) trước, sau đó Needs, cuối cùng Wants" / "Nếu lúng túng, dùng Auto-Assign → Underfunded để phân bổ tự động dựa trên Targets"
+
+**English (`en`):**
+- **Steps (5):** Open the Plan tab → Check that Ready to Assign (RTA) > 0 → Click "+ Assign" → Choose a category → Enter an amount → Repeat until RTA = $0
+- **Example:** "Salary of 20M arrives. RTA shows 20,000,000₫. Assign 5M to 'Rent', 3M to 'Food', 2M to 'Transport'… until RTA reaches 0."
+- **Tips:** "Start with mandatory Bills, then Needs, then Wants" / "If stuck, use Auto-Assign → Underfunded to allocate automatically based on Targets"
+
+Both language variants exist as separate string keys in `guideDict.vi` and `guideDict.en` under `guide.uc.payday-assign.*`.
 
 ### Screenshots
 
