@@ -270,3 +270,9 @@ end; $$;
 drop trigger if exists log_assignment_change on assignments;
 create trigger log_assignment_change after insert or update on assignments
 for each row execute function public.log_assignment_change();
+
+-- ============ 0008_archive_categories.sql ============
+alter table category_groups add column archived boolean not null default false;
+alter table categories add column archived boolean not null default false;
+create index if not exists category_groups_active_idx on category_groups (budget_id) where archived = false;
+create index if not exists categories_active_idx on categories (budget_id) where archived = false;

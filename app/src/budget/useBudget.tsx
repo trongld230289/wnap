@@ -47,7 +47,11 @@ interface BudgetCtx {
   refetch: () => Promise<void>;
   setAssigned: (categoryId: string, amount: number) => Promise<void>;
   addGroup: (name: string) => Promise<void>;
+  renameGroup: (groupId: string, name: string) => Promise<void>;
+  archiveGroup: (groupId: string) => Promise<{ ok: boolean; reason?: 'not-empty' }>;
   addCategory: (groupId: string, name: string, kind: string) => Promise<void>;
+  renameCategory: (categoryId: string, name: string) => Promise<void>;
+  archiveCategory: (categoryId: string) => Promise<void>;
   setTarget: (categoryId: string, t: TargetInput) => Promise<void>;
   removeTarget: (categoryId: string) => Promise<void>;
   setSnooze: (categoryId: string, snoozed: boolean) => Promise<void>;
@@ -76,8 +80,8 @@ interface FetchResult {
 
 async function fetchRaw(budgetId: string): Promise<FetchResult> {
   const [g, c, t, s, a, tx, acc, pay, al, mem] = await Promise.all([
-    supabase.from('category_groups').select('id,name,is_system,sort_order').eq('budget_id', budgetId).order('sort_order'),
-    supabase.from('categories').select('id,group_id,name,kind,is_system,sort_order').eq('budget_id', budgetId).order('sort_order'),
+    supabase.from('category_groups').select('id,name,is_system,sort_order').eq('budget_id', budgetId).eq('archived', false).order('sort_order'),
+    supabase.from('categories').select('id,group_id,name,kind,is_system,sort_order').eq('budget_id', budgetId).eq('archived', false).order('sort_order'),
     supabase.from('targets').select('category_id,strategy,amount,cadence,due_day,due_weekday,due_date').eq('budget_id', budgetId),
     supabase.from('target_snoozes').select('category_id,month').eq('budget_id', budgetId),
     supabase.from('assignments').select('category_id,month,assigned').eq('budget_id', budgetId),
@@ -161,10 +165,37 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
     await refetch();
   }, [budgetId, refetch]);
 
+  const renameGroup = useCallback(async (groupId: string, name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    await supabase.from('category_groups').update({ name: trimmed }).eq('id', groupId).eq('budget_id', budgetId);
+    await refetch();
+  }, [budgetId, refetch]);
+
   const addCategory = useCallback(async (groupId: string, name: string, kind: string) => {
     await supabase.from('categories').insert({ budget_id: budgetId, group_id: groupId, name, kind });
     await refetch();
   }, [budgetId, refetch]);
+
+  const renameCategory = useCallback(async (categoryId: string, name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    await supabase.from('categories').update({ name: trimmed }).eq('id', categoryId).eq('budget_id', budgetId);
+    await refetch();
+  }, [budgetId, refetch]);
+
+  const archiveCategory = useCallback(async (categoryId: string) => {
+    await supabase.from('categories').update({ archived: true }).eq('id', categoryId).eq('budget_id', budgetId);
+    await refetch();
+  }, [budgetId, refetch]);
+
+  const archiveGroup = useCallback(async (groupId: string): Promise<{ ok: boolean; reason?: 'not-empty' }> => {
+    const hasActive = raw.categories.some((c) => c.group_id === groupId && !c.is_system);
+    if (hasActive) return { ok: false, reason: 'not-empty' };
+    await supabase.from('category_groups').update({ archived: true }).eq('id', groupId).eq('budget_id', budgetId);
+    await refetch();
+    return { ok: true };
+  }, [budgetId, raw, refetch]);
 
   const setTarget = useCallback(async (categoryId: string, t: TargetInput) => {
     await supabase.from('targets').upsert({ budget_id: budgetId, category_id: categoryId, strategy: t.strategy, amount: t.amount, cadence: t.cadence, due_day: t.dueDay, due_weekday: t.dueWeekday, due_date: t.dueDate }, { onConflict: 'category_id' });
@@ -269,7 +300,7 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
     categoryName: (id) => nameById.get(id) ?? id,
     accountName: (id) => accNameById.get(id) ?? id,
     groupIdOf: (id) => groupById.get(id) ?? '',
-    refetch, setAssigned, addGroup, addCategory, setTarget, removeTarget, setSnooze, moveMoney, applyProposals,
+    refetch, setAssigned, addGroup, renameGroup, archiveGroup, addCategory, renameCategory, archiveCategory, setTarget, removeTarget, setSnooze, moveMoney, applyProposals,
     addAccount, upsertPayee, addTransaction,
     setTxStatus, updateTransaction, deleteTransaction, reconcileAccount, addTransfer,
   };

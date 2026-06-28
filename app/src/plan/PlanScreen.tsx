@@ -8,6 +8,7 @@ import { AssignPopover } from './AssignPopover';
 import { MoveMoneyModal } from './MoveMoneyModal';
 import { TargetEditorModal } from './TargetEditorModal';
 import { ActivityDialog } from './ActivityDialog';
+import { AddCategoryModal } from './AddCategoryModal';
 import { PLAN_FILTERS } from '../budget/planFilters';
 import type { FilterId } from '../budget/planFilters';
 import { Button } from '@/components/ui/button';
@@ -18,10 +19,11 @@ type ModalState =
   | { type: 'assign' }
   | { type: 'move'; fromId: string }
   | { type: 'target'; categoryId: string }
+  | { type: 'addCategory' }
   | null;
 
 export function PlanScreen() {
-  const { loading, rows, groups, addGroup, addCategory } = useBudget();
+  const { loading, rows, groups, addGroup } = useBudget();
   const { prompt, notify } = useDialogs();
   const { t } = useI18n();
   const [active, setActive] = useState<FilterId | null>(null);
@@ -43,9 +45,7 @@ export function PlanScreen() {
       await notify({ title: t('plan.noGroupTitle'), description: t('plan.noGroupDesc') });
       return;
     }
-    const name = await prompt({ title: t('plan.newCategory'), label: t('plan.categoryName'), placeholder: t('plan.categoryPlaceholder'), confirmText: t('plan.create') });
-    if (!name) return;
-    await addCategory(userGroups[0].id, name, 'need');
+    setModal({ type: 'addCategory' });
   }
 
   return (
@@ -72,6 +72,7 @@ export function PlanScreen() {
       {modal?.type === 'assign' && <AssignPopover onClose={() => setModal(null)} />}
       {modal?.type === 'move' && <MoveMoneyModal fromId={modal.fromId} onClose={() => setModal(null)} />}
       {modal?.type === 'target' && <TargetEditorModal categoryId={modal.categoryId} onClose={() => setModal(null)} />}
+      {modal?.type === 'addCategory' && <AddCategoryModal onClose={() => setModal(null)} />}
       {showActivity && <ActivityDialog onClose={() => setShowActivity(false)} />}
     </div>
   );
