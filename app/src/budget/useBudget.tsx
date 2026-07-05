@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useRealtime } from './useRealtime';
 import { debounce } from './debounce';
 import { mapActionLog } from './actionLog';
+import { deriveMemoSuggestions } from './memoSuggest';
 import type { RawActionLog, BudgetMember, ActionLogEntry } from './actionLog';
 import { computeThrough, buildPlanRows, monthOf } from '../engine';
 import type { Month, PlanRow, Proposal, MonthSummary, TargetStrategy, TargetCadence } from '../engine';
@@ -40,6 +41,8 @@ interface BudgetCtx {
   accounts: LedgerAccount[];
   payees: LedgerPayee[];
   transactions: LedgerTxn[];
+  memosByPayee: Map<string, string[]>;
+  allMemos: string[];
   recentMoves: ActionLogEntry[];
   categoryName: (id: string) => string;
   accountName: (id: string) => string;
@@ -151,6 +154,7 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
   const accounts = useMemo(() => mapAccounts(rawAccounts), [rawAccounts]);
   const payees = useMemo(() => mapPayees(rawPayees), [rawPayees]);
   const transactions = useMemo(() => mapLedgerTxns(raw.transactions), [raw]);
+  const { memosByPayee, allMemos } = useMemo(() => deriveMemoSuggestions(transactions), [transactions]);
   const recentMoves = useMemo(() => mapActionLog(rawActionLog, members), [rawActionLog, members]);
   const allCategories = useMemo(() => raw.categories.map((c) => ({ id: c.id, name: c.name, isSystem: c.is_system })), [raw]);
   const accNameById = useMemo(() => new Map(rawAccounts.map((a) => [a.id, a.name])), [rawAccounts]);
@@ -296,7 +300,7 @@ export function BudgetProvider({ budgetId, children }: { budgetId: string; child
 
   const value: BudgetCtx = {
     loading, viewMonth, setViewMonth, rows, rta, summaries, firstMonth, groups, allCategories,
-    accounts, payees, transactions, recentMoves,
+    accounts, payees, transactions, memosByPayee, allMemos, recentMoves,
     categoryName: (id) => nameById.get(id) ?? id,
     accountName: (id) => accNameById.get(id) ?? id,
     groupIdOf: (id) => groupById.get(id) ?? '',
