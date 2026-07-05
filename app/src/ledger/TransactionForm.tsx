@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useBudget } from '../budget/useBudget';
 import { parseVnd, formatVnd } from '../budget/format';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { useI18n } from '../i18n/useI18n';
 import type { LedgerTxn } from '../lib/mappers';
 
 export function TransactionForm({ accountId, editing, onDone }: { accountId: string; editing: LedgerTxn | null; onDone: () => void }) {
-  const { allCategories, payees, upsertPayee, addTransaction, updateTransaction } = useBudget();
+  const { allCategories, payees, upsertPayee, addTransaction, updateTransaction, memosByPayee, allMemos } = useBudget();
   const { t } = useI18n();
   const today = new Date().toISOString().slice(0, 10);
   const payeeName0 = editing?.payeeId ? payees.find((p) => p.id === editing.payeeId)?.name ?? '' : '';
@@ -19,6 +19,12 @@ export function TransactionForm({ accountId, editing, onDone }: { accountId: str
   const [outflow, setOutflow] = useState(editing && editing.amount < 0 ? formatVnd(-editing.amount) : '');
   const [inflow, setInflow] = useState(editing && editing.amount > 0 ? formatVnd(editing.amount) : '');
   const [error, setError] = useState('');
+
+  const memoOptions = useMemo(() => {
+    const key = payee.trim().toLowerCase();
+    const id = key ? payees.find((p) => p.name.toLowerCase() === key)?.id : undefined;
+    return (id && memosByPayee.get(id)) || allMemos;
+  }, [payee, payees, memosByPayee, allMemos]);
 
   async function save() {
     const out = parseVnd(outflow);
@@ -43,7 +49,8 @@ export function TransactionForm({ accountId, editing, onDone }: { accountId: str
           {allCategories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
         </SelectContent>
       </Select>
-      <Input className="h-8 w-32" placeholder={t('txn.memo')} value={memo} onChange={(e) => setMemo(e.target.value)} />
+      <Input className="h-8 w-32" placeholder={t('txn.memo')} list="memo-list" value={memo} onChange={(e) => setMemo(e.target.value)} />
+      <datalist id="memo-list">{memoOptions.map((m) => <option key={m} value={m} />)}</datalist>
       <Input inputMode="numeric" className="h-8 w-24 text-right tabular-nums" placeholder={t('txn.colOutflow')} value={outflow} onChange={(e) => { setOutflow(e.target.value); setError(''); }} />
       <Input inputMode="numeric" className="h-8 w-24 text-right tabular-nums" placeholder={t('txn.colInflow')} value={inflow} onChange={(e) => { setInflow(e.target.value); setError(''); }} />
       <Button size="sm" onClick={save}>{editing ? t('txn.update') : t('common.save')}</Button>
